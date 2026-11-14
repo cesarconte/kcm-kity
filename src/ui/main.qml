@@ -35,11 +35,24 @@ KCMUtils.SimpleKCM {
     ]
 
     readonly property var calendarClients: [
-        { "value": "proton", "text": i18n("Proton Calendar (Aplicación / Web)") },
-        { "value": "google", "text": i18n("Google Calendar (Navegador web)") }
+        { "value": "korganizer", "text": i18n("KOrganizer (Google Calendar)") },
+        { "value": "google", "text": i18n("Google Calendar (Navegador web)") },
+        { "value": "proton", "text": i18n("Proton Calendar (Aplicación / Web)") }
     ]
 
     property bool showAdvancedOllama: false
+    property int selectedVoiceOrb: 3
+    property real voicePaceVal: 0.68
+    property real voiceExpressivityVal: 0.88
+    property real kcmAnimTime: 0.0
+
+    NumberAnimation on kcmAnimTime {
+        from: 0.0
+        to: 1000.0
+        duration: 1000000
+        loops: Animation.Infinite
+        running: true
+    }
 
     QtDialogs.FileDialog {
         id: whisperFileDialog
@@ -62,6 +75,416 @@ KCMUtils.SimpleKCM {
     }
 
     Kirigami.FormLayout {
+        // =====================================================================
+        // 0A. macOS 27 Golden Gate: Activar Kity / Kity AI (beta)
+        // Replicates media_1794404303929_e7675d47.png & Apple Guide mchl3fd7fc15
+        // =====================================================================
+        Kirigami.Separator {
+            Kirigami.FormData.isSection: true
+            Kirigami.FormData.label: i18n("Kity y Kity AI — macOS Golden Gate")
+        }
+
+        Rectangle {
+            Kirigami.FormData.label: i18n("Estado de Kity:")
+            Layout.fillWidth: true
+            implicitHeight: siriHeroCol.implicitHeight + 24
+            radius: 12
+            color: Qt.rgba(0.10, 0.11, 0.16, 0.85)
+            border.width: 1
+            border.color: Qt.rgba(1, 1, 1, 0.16)
+
+            ColumnLayout {
+                id: siriHeroCol
+                anchors.fill: parent
+                anchors.margins: 12
+                spacing: 10
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 12
+
+                    Rectangle {
+                        Layout.preferredWidth: 42
+                        Layout.preferredHeight: 42
+                        radius: 21
+                        gradient: Gradient {
+                            GradientStop { position: 0.0; color: "#FF375F" }
+                            GradientStop { position: 0.5; color: "#BF5AF2" }
+                            GradientStop { position: 1.0; color: "#5E5CE6" }
+                        }
+
+                        Kirigami.Icon {
+                            anchors.centerIn: parent
+                            width: 22
+                            height: 22
+                            source: "audio-input-microphone-symbolic"
+                            isMask: true
+                            color: "#FFFFFF"
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 2
+
+                        QQC2.Label {
+                            Layout.fillWidth: true
+                            wrapMode: Text.WordWrap
+                            font.bold: true
+                            color: "#FFFFFF"
+                            text: kcm.siriMode === "ai"
+                                ? i18n("Kity AI (beta) activado")
+                                : (kcm.siriMode === "classic" ? i18n("Kity (versión clásica) activado") : i18n("Kity está desactivado"))
+                        }
+
+                        QQC2.Label {
+                            Layout.fillWidth: true
+                            wrapMode: Text.WordWrap
+                            font.pixelSize: 12
+                            color: Qt.rgba(1, 1, 1, 0.72)
+                            text: i18n("Kity te ayuda con tus tareas diarias y te responde al instante. En macOS Golden Gate puedes elegir entre la nueva experiencia conversacional Kity AI o Kity clásico.")
+                        }
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    QQC2.Button {
+                        Layout.fillWidth: true
+                        highlighted: kcm.siriMode === "ai"
+                        text: i18n("Probar Kity AI (beta)")
+                        onClicked: kcm.siriMode = "ai"
+                    }
+
+                    QQC2.Button {
+                        Layout.fillWidth: true
+                        highlighted: kcm.siriMode === "classic"
+                        text: i18n("Usar Kity (versión clásica)")
+                        onClicked: kcm.siriMode = "classic"
+                    }
+
+                    QQC2.Button {
+                        highlighted: kcm.siriMode === "off"
+                        text: i18n("Desactivar")
+                        onClicked: kcm.siriMode = "off"
+                    }
+                }
+            }
+        }
+
+        QQC2.Label {
+            Kirigami.FormData.label: i18n("Atajo de teclado:")
+            text: i18n("Meta + K (Píldora Rápida «Search or Ask»)")
+            font.bold: true
+        }
+
+        // =====================================================================
+        // 0B. Personalizar la voz de Kity ("Guided by voices" - 10b_siri_voice_window.png)
+        // =====================================================================
+        Kirigami.Separator {
+            Kirigami.FormData.isSection: true
+            Kirigami.FormData.label: i18n("Personalizar la voz de Kity (Voz, Variante, Ritmo y Expresividad)")
+        }
+
+        RowLayout {
+            Kirigami.FormData.label: i18n("Vista previa acústica:")
+            Layout.fillWidth: true
+            spacing: 12
+
+            Rectangle {
+                Layout.preferredWidth: 210
+                Layout.preferredHeight: 110
+                radius: 12
+                color: "#070709"
+                border.width: 1
+                border.color: Qt.rgba(1, 1, 1, 0.18)
+                clip: true
+
+                Repeater {
+                    model: 4
+                    Rectangle {
+                        required property int index
+                        anchors.centerIn: parent
+                        readonly property real waveScale: 1.0 + 0.12 * Math.sin(root.kcmAnimTime * 3.0 - index * 0.9)
+                        width: (40 + index * 20) * waveScale
+                        height: (40 + index * 20) * waveScale
+                        radius: width * 0.38
+                        rotation: index * 22.5 + root.kcmAnimTime * 12
+                        color: "transparent"
+                        border.width: 1.3
+                        border.color: Qt.rgba(1, 1, 1, (0.28 - index * 0.05) * (0.5 + kcm.voiceExpressivity * 0.5))
+                    }
+                }
+
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: 38
+                    height: 38
+                    radius: 19
+                    color: Qt.rgba(1, 1, 1, 0.24)
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: 24
+                        height: 24
+                        radius: 12
+                        color: "#FFFFFF"
+                    }
+                }
+
+                HoverHandler { cursorShape: Qt.PointingHandCursor }
+                TapHandler { onTapped: kcm.previewVoice() }
+            }
+
+            QQC2.Label {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                font.pixelSize: 12
+                opacity: 0.78
+                text: i18n("Haz clic en el orbe acústico o en cualquiera de las 7 voces numeradas para escuchar una muestra en tiempo real con la variante, ritmo y expresividad seleccionados.")
+            }
+        }
+
+        QQC2.ComboBox {
+            Kirigami.FormData.label: i18n("Variante (Acento):")
+            Layout.fillWidth: true
+            model: ["Spanish (Spain)", "Spanish (Latin America)", "American", "British"]
+            currentIndex: Math.max(0, model.indexOf(kcm.voiceAccent))
+            onActivated: index => {
+                kcm.voiceAccent = model[index];
+                kcm.previewVoice();
+            }
+        }
+
+        RowLayout {
+            Kirigami.FormData.label: i18n("Voz (1–7):")
+            spacing: 10
+
+            Repeater {
+                model: ["#30D158", "#FFD60A", "#FF9F0A", "#FF375F", "#BF5AF2", "#5E5CE6", "#64D2FF"]
+
+                Item {
+                    required property string modelData
+                    required property int index
+                    width: 26
+                    height: 26
+                    readonly property bool isSel: kcm.voiceIndex === index
+
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: 26
+                        height: 26
+                        radius: 13
+                        color: "transparent"
+                        border.width: parent.isSel ? 2 : 0
+                        border.color: parent.modelData
+                    }
+
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: 19
+                        height: 19
+                        radius: 9.5
+                        color: parent.modelData
+                        QQC2.Label {
+                            anchors.centerIn: parent
+                            visible: parent.parent.isSel
+                            text: (parent.parent.index + 1).toString()
+                            color: "#FFFFFF"
+                            font.pixelSize: 10
+                            font.bold: true
+                        }
+                    }
+
+                    HoverHandler { cursorShape: Qt.PointingHandCursor }
+                    TapHandler {
+                        onTapped: {
+                            kcm.voiceIndex = index;
+                            kcm.previewVoice();
+                        }
+                    }
+                }
+            }
+        }
+
+        QQC2.Slider {
+            Kirigami.FormData.label: i18n("Ritmo (Pace):")
+            Layout.fillWidth: true
+            from: 0.0
+            to: 1.0
+            value: kcm.voicePace
+            onMoved: kcm.voicePace = value
+        }
+
+        QQC2.Slider {
+            Kirigami.FormData.label: i18n("Expresividad (Expressivity):")
+            Layout.fillWidth: true
+            from: 0.0
+            to: 1.0
+            value: kcm.voiceExpressivity
+            onMoved: kcm.voiceExpressivity = value
+        }
+
+        // =====================================================================
+        // 0C. Ajustes de la app Kity (Apple Guide q7ny3g54v9lk & mchl3fd7fc15)
+        // =====================================================================
+        Kirigami.Separator {
+            Kirigami.FormData.isSection: true
+            Kirigami.FormData.label: i18n("App Kity (Conversaciones e Historial)")
+        }
+
+        QQC2.ComboBox {
+            Kirigami.FormData.label: i18n("Se abre en:")
+            Layout.fillWidth: true
+            model: [
+                { value: "past", text: i18n("Conversaciones recientes") },
+                { value: "new", text: i18n("Nueva conversación") }
+            ]
+            textRole: "text"
+            valueRole: "value"
+            currentIndex: kcm.openToMode === "new" ? 1 : 0
+            onActivated: index => kcm.openToMode = (index === 1 ? "new" : "past")
+        }
+
+        QQC2.ComboBox {
+            Kirigami.FormData.label: i18n("Conservar las conversaciones:")
+            Layout.fillWidth: true
+            model: [
+                { value: "forever", text: i18n("Siempre") },
+                { value: "1year", text: i18n("1 año") },
+                { value: "30days", text: i18n("30 días") }
+            ]
+            textRole: "text"
+            valueRole: "value"
+            currentIndex: kcm.historyRetention === "1year" ? 1 : (kcm.historyRetention === "30days" ? 2 : 0)
+            onActivated: index => kcm.historyRetention = (index === 1 ? "1year" : (index === 2 ? "30days" : "forever"))
+            QQC2.ToolTip.text: i18n("Si eliges «30 días» o «1 año», las conversaciones más antiguas se eliminarán definitivamente.")
+            QQC2.ToolTip.visible: hovered
+        }
+
+        QQC2.ComboBox {
+            Kirigami.FormData.label: i18n("Previsualizar (barra lateral):")
+            Layout.fillWidth: true
+            model: [
+                { value: 2, text: i18n("2 líneas") },
+                { value: 4, text: i18n("4 líneas (Recomendado)") },
+                { value: 6, text: i18n("6 líneas") }
+            ]
+            textRole: "text"
+            valueRole: "value"
+            currentIndex: kcm.previewLines <= 2 ? 0 : (kcm.previewLines >= 6 ? 2 : 1)
+            onActivated: index => kcm.previewLines = (index === 0 ? 2 : (index === 2 ? 6 : 4))
+        }
+
+        // =====================================================================
+        // 0D. Inteligencia Visual, Peticiones y Sugerencias (mchl3fd7fc15)
+        // =====================================================================
+        Kirigami.Separator {
+            Kirigami.FormData.isSection: true
+            Kirigami.FormData.label: i18n("Respuestas, Buscador Visual y Sugerencias")
+        }
+
+        QQC2.CheckBox {
+            Kirigami.FormData.label: i18n("Transcripción:")
+            text: i18n("Mostrar siempre la petición (muestra el texto de lo que dices en pantalla)")
+            checked: kcm.alwaysShowRequest
+            onToggled: kcm.alwaysShowRequest = checked
+        }
+
+        QQC2.CheckBox {
+            Kirigami.FormData.label: i18n("Buscador visual automático:")
+            text: i18n("Identificar automáticamente objetos, texto y lugares en capturas de pantalla")
+            checked: kcm.autoVisualLookup
+            onToggled: kcm.autoVisualLookup = checked
+        }
+
+        QQC2.CheckBox {
+            Kirigami.FormData.label: i18n("Extensión en la nube:")
+            text: i18n("Confirmar peticiones antes de enviar consultas complejas a la nube (Gemini)")
+            checked: kcm.confirmCloudRequests
+            onToggled: kcm.confirmCloudRequests = checked
+        }
+
+        QQC2.CheckBox {
+            Kirigami.FormData.label: i18n("Sugerencias de Kity:")
+            text: i18n("Permitir sugerencias contextuales de Kity en aplicaciones")
+            checked: kcm.suggestionsEnabled
+            onToggled: kcm.suggestionsEnabled = checked
+        }
+
+        ColumnLayout {
+            Kirigami.FormData.label: i18n("Apps excluidas:")
+            Layout.fillWidth: true
+            spacing: 6
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 6
+
+                QQC2.TextField {
+                    id: excludedAppInput
+                    Layout.fillWidth: true
+                    placeholderText: i18n("Nombre de aplicación a excluir de Kity…")
+                    onAccepted: {
+                        if (text.trim().length > 0) {
+                            kcm.addExcludedApp(text.trim());
+                            text = "";
+                        }
+                    }
+                }
+
+                QQC2.Button {
+                    icon.name: "list-add"
+                    text: i18n("Añadir app…")
+                    onClicked: {
+                        if (excludedAppInput.text.trim().length > 0) {
+                            kcm.addExcludedApp(excludedAppInput.text.trim());
+                            excludedAppInput.text = "";
+                        }
+                    }
+                }
+            }
+
+            Flow {
+                Layout.fillWidth: true
+                spacing: 6
+                visible: kcm.excludedApps.length > 0
+
+                Repeater {
+                    model: kcm.excludedApps
+
+                    Rectangle {
+                        required property string modelData
+                        height: 26
+                        width: exclRow.implicitWidth + 14
+                        radius: 13
+                        color: Qt.rgba(1, 1, 1, 0.10)
+                        border.width: 1
+                        border.color: Qt.rgba(1, 1, 1, 0.20)
+
+                        RowLayout {
+                            id: exclRow
+                            anchors.centerIn: parent
+                            spacing: 6
+
+                            QQC2.Label {
+                                text: modelData
+                                font.pixelSize: 12
+                            }
+
+                            QQC2.ToolButton {
+                                text: "✕"
+                                implicitWidth: 18
+                                implicitHeight: 18
+                                onClicked: kcm.removeExcludedApp(modelData)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // =====================================================================
         // 1. Voz y Escucha Activa («¡Hola Kity!»)
         // =====================================================================
@@ -163,7 +586,106 @@ KCMUtils.SimpleKCM {
             }
         }
 
+        QQC2.ComboBox {
+            Kirigami.FormData.label: i18n("Motor de Síntesis de Voz (TTS):")
+            Layout.fillWidth: true
+            model: [
+                { text: i18n("Google Cloud TTS (Nube — Voces oficiales Neural2 / Journey en castellano)"), value: "google" },
+                { text: i18n("Microsoft Edge Neural (Nube gratuita sin clave — Elvira / Ximena en castellano)"), value: "edge" },
+                { text: i18n("Kokoro-82M (Local / Offline — Modelo abierto de 82M)"), value: "kokoro" },
+                { text: i18n("Piper TTS (Local / Offline — Ligero en .onnx)"), value: "piper" }
+            ]
+            textRole: "text"
+            valueRole: "value"
+            currentIndex: {
+                for (var i = 0; i < model.length; ++i) {
+                    if (model[i].value === kcm.ttsEngine) return i;
+                }
+                return 0;
+            }
+            onActivated: {
+                kcm.ttsEngine = model[currentIndex].value;
+            }
+        }
+
+        // --- Configuración Google Cloud TTS ---
+        QQC2.TextField {
+            visible: kcm.ttsEngine === "google"
+            Kirigami.FormData.label: i18n("Clave de API de Google Cloud:")
+            Layout.fillWidth: true
+            echoMode: TextInput.Password
+            placeholderText: i18n("Introduce tu API Key de Google Cloud Text-to-Speech")
+            text: kcm.googleApiKey
+            onTextEdited: kcm.googleApiKey = text.trim()
+        }
+
+        QQC2.ComboBox {
+            visible: kcm.ttsEngine === "google"
+            Kirigami.FormData.label: i18n("Voz de Google Cloud (España):")
+            Layout.fillWidth: true
+            model: [
+                { text: i18n("es-ES-Neural2-F (Femenina — Calidad Neural2 por defecto)"), value: "es-ES-Neural2-F" },
+                { text: i18n("es-ES-Journey-F (Femenina — Expresiva conversacional)"), value: "es-ES-Journey-F" },
+                { text: i18n("es-ES-Studio-C (Femenina — Calidad de estudio máxima)"), value: "es-ES-Studio-C" },
+                { text: i18n("es-ES-Neural2-A (Femenina — Variante clara)"), value: "es-ES-Neural2-A" },
+                { text: i18n("es-ES-Neural2-B (Masculina — Neural2)"), value: "es-ES-Neural2-B" }
+            ]
+            textRole: "text"
+            valueRole: "value"
+            currentIndex: {
+                for (var i = 0; i < model.length; ++i) {
+                    if (model[i].value === kcm.googleVoice) return i;
+                }
+                return 0;
+            }
+            onActivated: kcm.googleVoice = model[currentIndex].value
+        }
+
+        // --- Configuración Microsoft Edge Neural TTS ---
+        QQC2.ComboBox {
+            visible: kcm.ttsEngine === "edge"
+            Kirigami.FormData.label: i18n("Voz Edge Neural (Castellano de España):")
+            Layout.fillWidth: true
+            model: [
+                { text: i18n("es-ES-ElviraNeural (Femenina — Natural y amigable)"), value: "es-ES-ElviraNeural" },
+                { text: i18n("es-ES-XimenaNeural (Femenina — Entonación profesional)"), value: "es-ES-XimenaNeural" },
+                { text: i18n("es-ES-AlvaroNeural (Masculina — Natural)"), value: "es-ES-AlvaroNeural" }
+            ]
+            textRole: "text"
+            valueRole: "value"
+            currentIndex: {
+                for (var i = 0; i < model.length; ++i) {
+                    if (model[i].value === kcm.edgeVoice) return i;
+                }
+                return 0;
+            }
+            onActivated: kcm.edgeVoice = model[currentIndex].value
+        }
+
+        // --- Configuración Kokoro-82M ---
+        QQC2.ComboBox {
+            visible: kcm.ttsEngine === "kokoro"
+            Kirigami.FormData.label: i18n("Voz Kokoro-82M:")
+            Layout.fillWidth: true
+            model: [
+                { text: i18n("ef_dora (Femenina — Modelo Kokoro)"), value: "ef_dora" },
+                { text: i18n("em_alex (Masculina — Modelo Kokoro)"), value: "em_alex" },
+                { text: i18n("em_santa (Masculina — Variante)"), value: "em_santa" }
+            ]
+            textRole: "text"
+            valueRole: "value"
+            currentIndex: {
+                for (var i = 0; i < model.length; ++i) {
+                    if (model[i].value === kcm.kokoroVoice) return i;
+                }
+                return 0;
+            }
+            onActivated: kcm.kokoroVoice = model[currentIndex].value
+        }
+
+        // --- Configuración Piper TTS ---
         RowLayout {
+            visible: kcm.ttsEngine === "piper"
             Kirigami.FormData.label: i18n("Voz Piper TTS (.onnx):")
             Layout.fillWidth: true
             Layout.minimumWidth: 0
@@ -193,11 +715,90 @@ KCMUtils.SimpleKCM {
         }
 
         // =====================================================================
-        // 2. Motor de Inteligencia Artificial (Ollama)
+        // 2. Motor de Inteligencia Artificial (Dual-Brain: Ollama & Google Gemini)
         // =====================================================================
         Kirigami.Separator {
             Kirigami.FormData.isSection: true
-            Kirigami.FormData.label: i18n("Motor de Inteligencia Artificial Local (Ollama)")
+            Kirigami.FormData.label: i18n("Motor de Inteligencia Artificial (Dual-Brain: Local & Nube)")
+        }
+
+        QQC2.ComboBox {
+            id: aiBackendCombo
+            Kirigami.FormData.label: i18n("Arquitectura de IA:")
+            Layout.fillWidth: true
+            textRole: "text"
+            valueRole: "value"
+            model: [
+                {
+                    value: "hybrid",
+                    text: i18n("Híbrido Inteligente (Recomendado: Ollama para control local + Google Gemini para web y conocimiento)")
+                },
+                {
+                    value: "gemini",
+                    text: i18n("Google Gemini Cloud (Ultra-rápido, multimodal y Google Search Grounding en tiempo real)")
+                },
+                {
+                    value: "ollama",
+                    text: i18n("100% Local y Privado con Ollama (Llama 3.2 / Mistral / Qwen — Sin conexión a la nube)")
+                }
+            ]
+            currentIndex: {
+                for (let i = 0; i < model.length; ++i) {
+                    if (model[i].value === kcm.aiBackend) return i;
+                }
+                return 0;
+            }
+            onActivated: kcm.aiBackend = model[currentIndex].value
+            QQC2.ToolTip.text: i18n("Permite alternar entre procesamiento 100% local en tu hardware, la nube de Google Gemini o un modo híbrido inteligente.")
+            QQC2.ToolTip.visible: hovered
+        }
+
+        // Gemini Cloud Settings
+        QQC2.ComboBox {
+            visible: kcm.aiBackend === "gemini" || kcm.aiBackend === "hybrid"
+            Kirigami.FormData.label: i18n("Modelo Google Gemini:")
+            Layout.fillWidth: true
+            editable: true
+            textRole: "text"
+            valueRole: "value"
+            model: [
+                { value: "gemini-4-argon", text: i18n("Gemini 4 (Argon) — Siguiente generación DeepMind / Antigravity") },
+                { value: "gemini-2.0-flash", text: i18n("Gemini 2.0 Flash — Ultrarrápido, multimodal con Google Search Grounding") },
+                { value: "gemini-2.0-pro-exp-02-05", text: i18n("Gemini 2.0 Pro — Máxima potencia de código y razonamiento") },
+                { value: "gemini-1.5-pro", text: i18n("Gemini 1.5 Pro — Ventana de contexto masiva de 2M tokens") },
+                { value: "gemini-1.5-flash", text: i18n("Gemini 1.5 Flash — Ligero y eficiente") }
+            ]
+            editText: kcm.geminiModel
+            currentIndex: {
+                for (let i = 0; i < model.length; ++i) {
+                    if (model[i].value === kcm.geminiModel) return i;
+                }
+                return -1;
+            }
+            onActivated: {
+                if (currentIndex >= 0 && currentIndex < model.length) {
+                    kcm.geminiModel = model[currentIndex].value;
+                }
+            }
+            onAccepted: {
+                if (editText.trim().length > 0) {
+                    kcm.geminiModel = editText.trim();
+                }
+            }
+            QQC2.ToolTip.text: i18n("Modelo de Gemini a utilizar. Puedes seleccionar uno de la lista o escribir libremente cualquier identificador de modelo al que tengas acceso con tu clave (ej. gemini-4-argon, gemini-2.0-flash, etc.).")
+            QQC2.ToolTip.visible: hovered
+        }
+
+        QQC2.TextField {
+            visible: kcm.aiBackend === "gemini" || kcm.aiBackend === "hybrid"
+            Kirigami.FormData.label: i18n("Clave API de Gemini:")
+            Layout.fillWidth: true
+            echoMode: TextInput.PasswordEchoOnEdit
+            placeholderText: kcm.googleApiKey.length > 0 ? i18n("Reutilizando clave de Google Cloud configurada en TTS arriba") : i18n("Introduce tu clave API de Google AI Studio / Gemini")
+            text: kcm.geminiApiKey
+            onTextEdited: kcm.geminiApiKey = text.trim()
+            QQC2.ToolTip.text: i18n("Si se deja en blanco, Kity reutilizará automáticamente la clave de Google Cloud API configurada para la síntesis de voz arriba.")
+            QQC2.ToolTip.visible: hovered
         }
 
         RowLayout {

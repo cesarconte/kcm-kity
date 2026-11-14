@@ -20,6 +20,7 @@
 #include <QJsonObject>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <QProcess>
 #include <QStandardPaths>
 #include <QUrl>
 
@@ -57,6 +58,15 @@ void KcmKity::load()
     m_whisperLanguage = cfg.readEntry(QStringLiteral("whisperLanguage"), QStringLiteral("es"));
     m_whisperModelPath = cfg.readEntry(QStringLiteral("whisperModelPath"), QString());
     m_piperVoicePath = cfg.readEntry(QStringLiteral("piperVoicePath"), QString());
+    m_ttsEngine = cfg.readEntry(QStringLiteral("ttsEngine"), QStringLiteral("google"));
+    m_googleApiKey = cfg.readEntry(QStringLiteral("googleApiKey"), QString());
+    m_googleVoice = cfg.readEntry(QStringLiteral("googleVoice"), QStringLiteral("es-ES-Neural2-F"));
+    m_edgeVoice = cfg.readEntry(QStringLiteral("edgeVoice"), QStringLiteral("es-ES-ElviraNeural"));
+    m_kokoroVoice = cfg.readEntry(QStringLiteral("kokoroVoice"), QStringLiteral("ef_dora"));
+
+    m_aiBackend = cfg.readEntry(QStringLiteral("aiBackend"), QStringLiteral("hybrid"));
+    m_geminiModel = cfg.readEntry(QStringLiteral("geminiModel"), QStringLiteral("gemini-2.0-flash"));
+    m_geminiApiKey = cfg.readEntry(QStringLiteral("geminiApiKey"), QString());
 
     m_ollamaUrl = cfg.readEntry(QStringLiteral("ollamaUrl"), QStringLiteral("http://127.0.0.1:11434"));
     m_ollamaModel = cfg.readEntry(QStringLiteral("ollamaModel"), QStringLiteral("llama3.2:3b"));
@@ -79,6 +89,21 @@ void KcmKity::load()
     m_defaultEmailClient = cfg.readEntry(QStringLiteral("defaultEmailClient"), QStringLiteral("proton"));
     m_defaultCalendarClient = cfg.readEntry(QStringLiteral("defaultCalendarClient"), QStringLiteral("proton"));
 
+    m_voiceAccent = cfg.readEntry(QStringLiteral("voiceAccent"), QStringLiteral("Spanish (Spain)"));
+    m_voiceIndex = cfg.readEntry(QStringLiteral("voiceIndex"), 3);
+    m_voicePace = cfg.readEntry(QStringLiteral("voicePace"), 0.55);
+    m_voiceExpressivity = cfg.readEntry(QStringLiteral("voiceExpressivity"), 0.65);
+    m_siriMode = cfg.readEntry(QStringLiteral("siriMode"), QStringLiteral("ai"));
+    m_historyRetention = cfg.readEntry(QStringLiteral("historyRetention"), QStringLiteral("forever"));
+    m_openToMode = cfg.readEntry(QStringLiteral("openToMode"), QStringLiteral("past"));
+    m_previewLines = cfg.readEntry(QStringLiteral("previewLines"), 4);
+    m_alwaysShowRequest = cfg.readEntry(QStringLiteral("alwaysShowRequest"), true);
+    m_autoVisualLookup = cfg.readEntry(QStringLiteral("autoVisualLookup"), true);
+    m_confirmCloudRequests = cfg.readEntry(QStringLiteral("confirmCloudRequests"), false);
+    m_suggestionsEnabled = cfg.readEntry(QStringLiteral("suggestionsEnabled"), true);
+    m_excludedApps = cfg.readEntry(QStringLiteral("excludedApps"), QStringList());
+
+    Q_EMIT goldenGateChanged();
     Q_EMIT wakeWordEnabledChanged();
     Q_EMIT speechOutputModeChanged();
     Q_EMIT earconsEnabledChanged();
@@ -88,6 +113,11 @@ void KcmKity::load()
     Q_EMIT whisperLanguageChanged();
     Q_EMIT whisperModelPathChanged();
     Q_EMIT piperVoicePathChanged();
+    Q_EMIT ttsEngineChanged();
+    Q_EMIT googleApiKeyChanged();
+    Q_EMIT googleVoiceChanged();
+    Q_EMIT edgeVoiceChanged();
+    Q_EMIT kokoroVoiceChanged();
 
     Q_EMIT ollamaUrlChanged();
     Q_EMIT ollamaModelChanged();
@@ -127,6 +157,15 @@ void KcmKity::save()
     cfg.writeEntry(QStringLiteral("whisperLanguage"), m_whisperLanguage);
     cfg.writeEntry(QStringLiteral("whisperModelPath"), m_whisperModelPath);
     cfg.writeEntry(QStringLiteral("piperVoicePath"), m_piperVoicePath);
+    cfg.writeEntry(QStringLiteral("ttsEngine"), m_ttsEngine);
+    cfg.writeEntry(QStringLiteral("googleApiKey"), m_googleApiKey);
+    cfg.writeEntry(QStringLiteral("googleVoice"), m_googleVoice);
+    cfg.writeEntry(QStringLiteral("edgeVoice"), m_edgeVoice);
+    cfg.writeEntry(QStringLiteral("kokoroVoice"), m_kokoroVoice);
+
+    cfg.writeEntry(QStringLiteral("aiBackend"), m_aiBackend);
+    cfg.writeEntry(QStringLiteral("geminiModel"), m_geminiModel);
+    cfg.writeEntry(QStringLiteral("geminiApiKey"), m_geminiApiKey);
 
     cfg.writeEntry(QStringLiteral("ollamaUrl"), m_ollamaUrl);
     cfg.writeEntry(QStringLiteral("ollamaModel"), m_ollamaModel);
@@ -146,6 +185,20 @@ void KcmKity::save()
     cfg.writeEntry(QStringLiteral("defaultEmailClient"), m_defaultEmailClient);
     cfg.writeEntry(QStringLiteral("defaultCalendarClient"), m_defaultCalendarClient);
 
+    cfg.writeEntry(QStringLiteral("voiceAccent"), m_voiceAccent);
+    cfg.writeEntry(QStringLiteral("voiceIndex"), m_voiceIndex);
+    cfg.writeEntry(QStringLiteral("voicePace"), m_voicePace);
+    cfg.writeEntry(QStringLiteral("voiceExpressivity"), m_voiceExpressivity);
+    cfg.writeEntry(QStringLiteral("siriMode"), m_siriMode);
+    cfg.writeEntry(QStringLiteral("historyRetention"), m_historyRetention);
+    cfg.writeEntry(QStringLiteral("openToMode"), m_openToMode);
+    cfg.writeEntry(QStringLiteral("previewLines"), m_previewLines);
+    cfg.writeEntry(QStringLiteral("alwaysShowRequest"), m_alwaysShowRequest);
+    cfg.writeEntry(QStringLiteral("autoVisualLookup"), m_autoVisualLookup);
+    cfg.writeEntry(QStringLiteral("confirmCloudRequests"), m_confirmCloudRequests);
+    cfg.writeEntry(QStringLiteral("suggestionsEnabled"), m_suggestionsEnabled);
+    cfg.writeEntry(QStringLiteral("excludedApps"), m_excludedApps);
+
     cfg.sync();
 
     notifyDaemon();
@@ -163,6 +216,15 @@ void KcmKity::defaults()
     setWhisperLanguage(QStringLiteral("es"));
     setWhisperModelPath(QString());
     setPiperVoicePath(QString());
+    setTtsEngine(QStringLiteral("google"));
+    setGoogleApiKey(QString());
+    setGoogleVoice(QStringLiteral("es-ES-Neural2-F"));
+    setEdgeVoice(QStringLiteral("es-ES-ElviraNeural"));
+    setKokoroVoice(QStringLiteral("ef_dora"));
+
+    setAiBackend(QStringLiteral("hybrid"));
+    setGeminiModel(QStringLiteral("gemini-2.0-flash"));
+    setGeminiApiKey(QString());
 
     setOllamaUrl(QStringLiteral("http://127.0.0.1:11434"));
     setOllamaModel(QStringLiteral("llama3.2:3b"));
@@ -408,9 +470,17 @@ bool KcmKity::whisperFound() const
     if (!m_whisperModelPath.isEmpty() && QFile::exists(m_whisperModelPath)) {
         return true;
     }
-    const QString defaultDir = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + QStringLiteral("/kity/models");
-    QDir dir(defaultDir);
-    return !dir.entryList(QStringList() << QStringLiteral("*.bin"), QDir::Files).isEmpty();
+    QStringList dataDirs = QStandardPaths::standardLocations(QStandardPaths::GenericDataLocation);
+    if (!dataDirs.contains(QStringLiteral("/usr/share"))) {
+        dataDirs.append(QStringLiteral("/usr/share"));
+    }
+    for (const QString &base : dataDirs) {
+        QDir dir(base + QStringLiteral("/kity/models"));
+        if (!dir.entryList(QStringList() << QStringLiteral("*.bin"), QDir::Files).isEmpty()) {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool KcmKity::piperFound() const
@@ -418,9 +488,17 @@ bool KcmKity::piperFound() const
     if (!m_piperVoicePath.isEmpty() && QFile::exists(m_piperVoicePath)) {
         return true;
     }
-    const QString defaultDir = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + QStringLiteral("/kity/voices");
-    QDir dir(defaultDir);
-    return !dir.entryList(QStringList() << QStringLiteral("*.onnx"), QDir::Files).isEmpty();
+    QStringList dataDirs = QStandardPaths::standardLocations(QStandardPaths::GenericDataLocation);
+    if (!dataDirs.contains(QStringLiteral("/usr/share"))) {
+        dataDirs.append(QStringLiteral("/usr/share"));
+    }
+    for (const QString &base : dataDirs) {
+        QDir dir(base + QStringLiteral("/kity/voices"));
+        if (!dir.entryList(QStringList() << QStringLiteral("*.onnx"), QDir::Files).isEmpty()) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void KcmKity::fetchModels()
@@ -489,6 +567,284 @@ void KcmKity::openKnowledgeFolder() const
 void KcmKity::restoreDefaultPrompt()
 {
     setSystemPrompt(defaultSystemPrompt());
+}
+
+void KcmKity::setTtsEngine(const QString &v)
+{
+    if (m_ttsEngine != v) {
+        m_ttsEngine = v;
+        Q_EMIT ttsEngineChanged();
+        setNeedsSave(true);
+    }
+}
+
+void KcmKity::setGoogleApiKey(const QString &v)
+{
+    if (m_googleApiKey != v) {
+        m_googleApiKey = v;
+        Q_EMIT googleApiKeyChanged();
+        setNeedsSave(true);
+    }
+}
+
+void KcmKity::setGoogleVoice(const QString &v)
+{
+    if (m_googleVoice != v) {
+        m_googleVoice = v;
+        Q_EMIT googleVoiceChanged();
+        setNeedsSave(true);
+    }
+}
+
+void KcmKity::setEdgeVoice(const QString &v)
+{
+    if (m_edgeVoice != v) {
+        m_edgeVoice = v;
+        Q_EMIT edgeVoiceChanged();
+        setNeedsSave(true);
+    }
+}
+
+void KcmKity::setKokoroVoice(const QString &v)
+{
+    if (m_kokoroVoice != v) {
+        m_kokoroVoice = v;
+        Q_EMIT kokoroVoiceChanged();
+        setNeedsSave(true);
+    }
+}
+
+void KcmKity::setAiBackend(const QString &v)
+{
+    if (m_aiBackend != v) {
+        m_aiBackend = v;
+        Q_EMIT aiBackendChanged();
+        setNeedsSave(true);
+    }
+}
+
+void KcmKity::setGeminiModel(const QString &v)
+{
+    if (m_geminiModel != v) {
+        m_geminiModel = v;
+        Q_EMIT geminiModelChanged();
+        setNeedsSave(true);
+    }
+}
+
+void KcmKity::setGeminiApiKey(const QString &v)
+{
+    if (m_geminiApiKey != v) {
+        m_geminiApiKey = v;
+        Q_EMIT geminiApiKeyChanged();
+        setNeedsSave(true);
+    }
+}
+
+void KcmKity::setVoiceAccent(const QString &v)
+{
+    if (m_voiceAccent != v) {
+        m_voiceAccent = v;
+        Q_EMIT goldenGateChanged();
+        setNeedsSave(true);
+    }
+}
+
+void KcmKity::setVoiceIndex(int v)
+{
+    const int clamped = qBound(0, v, 6);
+    if (m_voiceIndex != clamped) {
+        m_voiceIndex = clamped;
+        Q_EMIT goldenGateChanged();
+        setNeedsSave(true);
+    }
+}
+
+void KcmKity::setVoicePace(double v)
+{
+    const double clamped = qBound(0.0, v, 1.0);
+    if (!qFuzzyCompare(m_voicePace, clamped)) {
+        m_voicePace = clamped;
+        Q_EMIT goldenGateChanged();
+        setNeedsSave(true);
+    }
+}
+
+void KcmKity::setVoiceExpressivity(double v)
+{
+    const double clamped = qBound(0.0, v, 1.0);
+    if (!qFuzzyCompare(m_voiceExpressivity, clamped)) {
+        m_voiceExpressivity = clamped;
+        Q_EMIT goldenGateChanged();
+        setNeedsSave(true);
+    }
+}
+
+void KcmKity::setSiriMode(const QString &v)
+{
+    if (m_siriMode != v) {
+        m_siriMode = v;
+        Q_EMIT goldenGateChanged();
+        setNeedsSave(true);
+    }
+}
+
+void KcmKity::setHistoryRetention(const QString &v)
+{
+    if (m_historyRetention != v) {
+        m_historyRetention = v;
+        Q_EMIT goldenGateChanged();
+        setNeedsSave(true);
+    }
+}
+
+void KcmKity::setOpenToMode(const QString &v)
+{
+    if (m_openToMode != v) {
+        m_openToMode = v;
+        Q_EMIT goldenGateChanged();
+        setNeedsSave(true);
+    }
+}
+
+void KcmKity::setPreviewLines(int v)
+{
+    const int clamped = qBound(2, v, 6);
+    if (m_previewLines != clamped) {
+        m_previewLines = clamped;
+        Q_EMIT goldenGateChanged();
+        setNeedsSave(true);
+    }
+}
+
+void KcmKity::setAlwaysShowRequest(bool v)
+{
+    if (m_alwaysShowRequest != v) {
+        m_alwaysShowRequest = v;
+        Q_EMIT goldenGateChanged();
+        setNeedsSave(true);
+    }
+}
+
+void KcmKity::setAutoVisualLookup(bool v)
+{
+    if (m_autoVisualLookup != v) {
+        m_autoVisualLookup = v;
+        Q_EMIT goldenGateChanged();
+        setNeedsSave(true);
+    }
+}
+
+void KcmKity::setConfirmCloudRequests(bool v)
+{
+    if (m_confirmCloudRequests != v) {
+        m_confirmCloudRequests = v;
+        Q_EMIT goldenGateChanged();
+        setNeedsSave(true);
+    }
+}
+
+void KcmKity::setSuggestionsEnabled(bool v)
+{
+    if (m_suggestionsEnabled != v) {
+        m_suggestionsEnabled = v;
+        Q_EMIT goldenGateChanged();
+        setNeedsSave(true);
+    }
+}
+
+void KcmKity::setExcludedApps(const QStringList &v)
+{
+    if (m_excludedApps != v) {
+        m_excludedApps = v;
+        Q_EMIT goldenGateChanged();
+        setNeedsSave(true);
+    }
+}
+
+void KcmKity::addExcludedApp(const QString &appName)
+{
+    const QString trimmed = appName.trimmed();
+    if (!trimmed.isEmpty() && !m_excludedApps.contains(trimmed, Qt::CaseInsensitive)) {
+        m_excludedApps.append(trimmed);
+        Q_EMIT goldenGateChanged();
+        setNeedsSave(true);
+    }
+}
+
+void KcmKity::removeExcludedApp(const QString &appName)
+{
+    if (m_excludedApps.removeAll(appName) > 0) {
+        Q_EMIT goldenGateChanged();
+        setNeedsSave(true);
+    }
+}
+
+void KcmKity::previewVoice()
+{
+    save();
+    const QString edgeCli = QStandardPaths::findExecutable(QStringLiteral("kity-edge-tts"));
+    const QString pwPlay = QStandardPaths::findExecutable(QStringLiteral("pw-play"));
+    if (edgeCli.isEmpty() || pwPlay.isEmpty()) {
+        return;
+    }
+
+    auto resolveEdgeVoiceForOrb = [](const QString &accent, int idx) -> QString {
+        if (accent.contains(QLatin1String("Latin"), Qt::CaseInsensitive)) {
+            static const QStringList voices = {
+                QStringLiteral("es-MX-DaliaNeural"), QStringLiteral("es-MX-JorgeNeural"),
+                QStringLiteral("es-CO-SalomeNeural"), QStringLiteral("es-MX-BeatrizNeural"),
+                QStringLiteral("es-AR-ElenaNeural"), QStringLiteral("es-CL-CatalinaNeural"),
+                QStringLiteral("es-US-PalomaNeural")
+            };
+            return voices.value(idx, voices.at(3));
+        }
+        if (accent.contains(QLatin1String("American"), Qt::CaseInsensitive)) {
+            static const QStringList voices = {
+                QStringLiteral("en-US-AvaNeural"), QStringLiteral("en-US-AndrewNeural"),
+                QStringLiteral("en-US-EmmaNeural"), QStringLiteral("en-US-AriaNeural"),
+                QStringLiteral("en-US-BrianNeural"), QStringLiteral("en-US-JennyNeural"),
+                QStringLiteral("en-US-GuyNeural")
+            };
+            return voices.value(idx, voices.at(3));
+        }
+        if (accent.contains(QLatin1String("British"), Qt::CaseInsensitive)) {
+            static const QStringList voices = {
+                QStringLiteral("en-GB-SoniaNeural"), QStringLiteral("en-GB-RyanNeural"),
+                QStringLiteral("en-GB-LibbyNeural"), QStringLiteral("en-GB-MaisieNeural"),
+                QStringLiteral("en-GB-ThomasNeural"), QStringLiteral("en-GB-AbbiNeural"),
+                QStringLiteral("en-GB-OllieNeural")
+            };
+            return voices.value(idx, voices.at(3));
+        }
+        static const QStringList esVoices = {
+            QStringLiteral("es-ES-AlvaroNeural"), QStringLiteral("es-ES-AbrilNeural"),
+            QStringLiteral("es-ES-ArnauNeural"), QStringLiteral("es-ES-ElviraNeural"),
+            QStringLiteral("es-ES-EstrellaNeural"), QStringLiteral("es-ES-DarioNeural"),
+            QStringLiteral("es-ES-XimenaNeural")
+        };
+        return esVoices.value(idx, esVoices.at(3));
+    };
+
+    const QString voice = resolveEdgeVoiceForOrb(m_voiceAccent, qBound(0, m_voiceIndex, 6));
+    const int ratePct = qRound((m_voicePace - 0.5) * 80.0);
+    const int pitchHz = qRound((m_voiceExpressivity - 0.5) * 28.0);
+    const QString rateArg = QStringLiteral("--rate=%1%2%").arg(ratePct >= 0 ? QStringLiteral("+") : QString()).arg(ratePct);
+    const QString pitchArg = QStringLiteral("--pitch=%1%2Hz").arg(pitchHz >= 0 ? QStringLiteral("+") : QString()).arg(pitchHz);
+    const QString sampleText = (m_voiceAccent.contains(QLatin1String("American"), Qt::CaseInsensitive)
+                                || m_voiceAccent.contains(QLatin1String("British"), Qt::CaseInsensitive))
+        ? QStringLiteral("Hello, I'm Kity in macOS Golden Gate. You can customize my voice, pace, and expressivity.")
+        : QStringLiteral("Hola, soy Kity en macOS Golden Gate. Puedes ajustar mi voz, ritmo y expresividad a tu gusto.");
+
+    auto *ttsProc = new QProcess(this);
+    auto *playProc = new QProcess(this);
+    ttsProc->setStandardOutputProcess(playProc);
+    connect(playProc, &QProcess::finished, this, [ttsProc, playProc](int, QProcess::ExitStatus) {
+        playProc->deleteLater();
+        ttsProc->deleteLater();
+    });
+    ttsProc->start(edgeCli, {QStringLiteral("--voice"), voice, rateArg, pitchArg, QStringLiteral("--text"), sampleText, QStringLiteral("--write-media"), QStringLiteral("-")});
+    playProc->start(pwPlay, {QStringLiteral("-")});
 }
 
 void KcmKity::notifyDaemon()
