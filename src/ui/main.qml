@@ -46,6 +46,9 @@ KCMUtils.SimpleKCM {
     property real voiceExpressivityVal: 0.88
     property real kcmAnimTime: 0.0
 
+    readonly property var chromaticOrbColors: ["#30D158", "#FFD60A", "#FF9F0A", "#FF375F", "#BF5AF2", "#5E5CE6", "#64D2FF"]
+    readonly property color selectedOrbColor: chromaticOrbColors[Math.max(0, Math.min(6, kcm.voiceIndex))]
+
     NumberAnimation on kcmAnimTime {
         from: 0.0
         to: 1000.0
@@ -188,9 +191,6 @@ KCMUtils.SimpleKCM {
             Kirigami.FormData.label: i18n("Personalizar la voz de Kity (Voz, Variante, Ritmo y Expresividad)")
         }
 
-        readonly property var chromaticOrbColors: ["#30D158", "#FFD60A", "#FF9F0A", "#FF375F", "#BF5AF2", "#5E5CE6", "#64D2FF"]
-        readonly property color selectedOrbColor: chromaticOrbColors[Math.max(0, Math.min(6, kcm.voiceIndex))]
-
         RowLayout {
             Kirigami.FormData.label: i18n("Vista previa acústica:")
             Layout.fillWidth: true
@@ -202,7 +202,7 @@ KCMUtils.SimpleKCM {
                 radius: 14
                 color: "#08080C"
                 border.width: 1
-                border.color: Qt.rgba(selectedOrbColor.r, selectedOrbColor.g, selectedOrbColor.b, 0.35)
+                border.color: Qt.rgba(root.selectedOrbColor.r, root.selectedOrbColor.g, root.selectedOrbColor.b, 0.35)
                 clip: true
 
                 // Ambient chromatic backdrop glow
@@ -211,7 +211,7 @@ KCMUtils.SimpleKCM {
                     width: 130
                     height: 80
                     radius: 40
-                    color: selectedOrbColor
+                    color: root.selectedOrbColor
                     opacity: 0.14 + 0.08 * Math.sin(root.kcmAnimTime * 2.5)
                 }
 
@@ -227,7 +227,7 @@ KCMUtils.SimpleKCM {
                         rotation: index * 25.0 + root.kcmAnimTime * 14
                         color: "transparent"
                         border.width: 1.4
-                        border.color: Qt.rgba(selectedOrbColor.r, selectedOrbColor.g, selectedOrbColor.b, (0.35 - index * 0.07) * (0.5 + kcm.voiceExpressivity * 0.5))
+                        border.color: Qt.rgba(root.selectedOrbColor.r, root.selectedOrbColor.g, root.selectedOrbColor.b, (0.35 - index * 0.07) * (0.5 + kcm.voiceExpressivity * 0.5))
                     }
                 }
 
@@ -238,9 +238,9 @@ KCMUtils.SimpleKCM {
                     height: 42
                     radius: 21
                     gradient: Gradient {
-                        GradientStop { position: 0.0; color: Qt.lighter(selectedOrbColor, 1.45) }
-                        GradientStop { position: 0.65; color: selectedOrbColor }
-                        GradientStop { position: 1.0; color: Qt.darker(selectedOrbColor, 1.35) }
+                        GradientStop { position: 0.0; color: Qt.lighter(root.selectedOrbColor, 1.45) }
+                        GradientStop { position: 0.65; color: root.selectedOrbColor }
+                        GradientStop { position: 1.0; color: Qt.darker(root.selectedOrbColor, 1.35) }
                     }
                     border.width: 1.5
                     border.color: Qt.rgba(1, 1, 1, 0.65)
@@ -266,7 +266,7 @@ KCMUtils.SimpleKCM {
                 spacing: 4
 
                 QQC2.Label {
-                    text: i18n("Voz %1 (%2)").arg(kcm.voiceIndex + 1).arg(kcm.voiceAccent)
+                    text: i18n("Voz %1 (%2)", kcm.voiceIndex + 1, kcm.voiceAccent)
                     font.weight: Font.DemiBold
                     font.pixelSize: 13
                 }
@@ -303,7 +303,7 @@ KCMUtils.SimpleKCM {
             spacing: 12
 
             Repeater {
-                model: chromaticOrbColors
+                model: root.chromaticOrbColors
 
                 Item {
                     id: orbItem
