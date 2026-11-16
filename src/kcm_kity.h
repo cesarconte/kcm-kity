@@ -16,6 +16,7 @@ class KcmKity : public KQuickConfigModule
     // Voice & Audio
     Q_PROPERTY(QString sttEngine READ sttEngine WRITE setSttEngine NOTIFY sttEngineChanged)
     Q_PROPERTY(bool wakeWordEnabled READ wakeWordEnabled WRITE setWakeWordEnabled NOTIFY wakeWordEnabledChanged)
+    Q_PROPERTY(bool continuousConversation READ continuousConversation WRITE setContinuousConversation NOTIFY continuousConversationChanged)
     Q_PROPERTY(QString speechOutputMode READ speechOutputMode WRITE setSpeechOutputMode NOTIFY speechOutputModeChanged)
     Q_PROPERTY(bool earconsEnabled READ earconsEnabled WRITE setEarconsEnabled NOTIFY earconsEnabledChanged)
     Q_PROPERTY(bool vadEnabled READ vadEnabled WRITE setVadEnabled NOTIFY vadEnabledChanged)
@@ -94,6 +95,9 @@ public:
 
     bool wakeWordEnabled() const { return m_wakeWordEnabled; }
     void setWakeWordEnabled(bool v);
+
+    bool continuousConversation() const { return m_continuousConversation; }
+    void setContinuousConversation(bool v);
 
     QString speechOutputMode() const { return m_speechOutputMode; }
     void setSpeechOutputMode(const QString &v);
@@ -233,6 +237,7 @@ Q_SIGNALS:
     void goldenGateChanged();
     void sttEngineChanged();
     void wakeWordEnabledChanged();
+    void continuousConversationChanged();
     void speechOutputModeChanged();
     void earconsEnabledChanged();
     void vadEnabledChanged();
@@ -281,6 +286,7 @@ private:
 
     QString m_sttEngine = QStringLiteral("gemini");
     bool m_wakeWordEnabled = true;
+    bool m_continuousConversation = false;
     QString m_speechOutputMode = QStringLiteral("always");
     bool m_earconsEnabled = true;
     bool m_vadEnabled = true;

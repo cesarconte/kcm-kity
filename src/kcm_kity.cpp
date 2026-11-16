@@ -51,6 +51,7 @@ void KcmKity::load()
 
     m_sttEngine = cfg.readEntry(QStringLiteral("sttEngine"), QStringLiteral("gemini"));
     m_wakeWordEnabled = cfg.readEntry(QStringLiteral("wakeWordEnabled"), true);
+    m_continuousConversation = cfg.readEntry(QStringLiteral("continuousConversation"), false);
     m_speechOutputMode = cfg.readEntry(QStringLiteral("speechOutputMode"), QStringLiteral("always"));
     m_earconsEnabled = cfg.readEntry(QStringLiteral("earconsEnabled"), true);
     m_vadEnabled = cfg.readEntry(QStringLiteral("vadEnabled"), true);
@@ -107,6 +108,7 @@ void KcmKity::load()
     Q_EMIT goldenGateChanged();
     Q_EMIT sttEngineChanged();
     Q_EMIT wakeWordEnabledChanged();
+    Q_EMIT continuousConversationChanged();
     Q_EMIT speechOutputModeChanged();
     Q_EMIT earconsEnabledChanged();
     Q_EMIT vadEnabledChanged();
@@ -152,6 +154,7 @@ void KcmKity::save()
 
     cfg.writeEntry(QStringLiteral("sttEngine"), m_sttEngine);
     cfg.writeEntry(QStringLiteral("wakeWordEnabled"), m_wakeWordEnabled);
+    cfg.writeEntry(QStringLiteral("continuousConversation"), m_continuousConversation);
     cfg.writeEntry(QStringLiteral("speechOutputMode"), m_speechOutputMode);
     cfg.writeEntry(QStringLiteral("earconsEnabled"), m_earconsEnabled);
     cfg.writeEntry(QStringLiteral("vadEnabled"), m_vadEnabled);
@@ -212,6 +215,7 @@ void KcmKity::defaults()
 {
     setSttEngine(QStringLiteral("gemini"));
     setWakeWordEnabled(true);
+    setContinuousConversation(false);
     setSpeechOutputMode(QStringLiteral("always"));
     setEarconsEnabled(true);
     setVadEnabled(true);
@@ -263,8 +267,16 @@ void KcmKity::setWakeWordEnabled(bool v)
 {
     if (m_wakeWordEnabled != v) {
         m_wakeWordEnabled = v;
-        Q_EMIT sttEngineChanged();
-    Q_EMIT wakeWordEnabledChanged();
+        Q_EMIT wakeWordEnabledChanged();
+        setNeedsSave(true);
+    }
+}
+
+void KcmKity::setContinuousConversation(bool v)
+{
+    if (m_continuousConversation != v) {
+        m_continuousConversation = v;
+        Q_EMIT continuousConversationChanged();
         setNeedsSave(true);
     }
 }

@@ -551,6 +551,15 @@ KCMUtils.SimpleKCM {
         }
 
         QQC2.CheckBox {
+            Kirigami.FormData.label: i18n("Conversación continua:")
+            text: i18n("Esperar una nueva pregunta automáticamente tras responder por voz")
+            checked: kcm.continuousConversation
+            onToggled: kcm.continuousConversation = checked
+            QQC2.ToolTip.text: i18n("Si está desactivado (Recomendado), Kity cerrará el micrófono inmediatamente al terminar de hablar para respetar el perfil de sonido de tus altavoces.")
+            QQC2.ToolTip.visible: hovered
+        }
+
+        QQC2.CheckBox {
             Kirigami.FormData.label: i18n("Al abrir ventana:")
             text: i18n("Empezar a escuchar por micrófono inmediatamente al activar Kity")
             checked: kcm.autoListenOnActivate
@@ -664,14 +673,28 @@ KCMUtils.SimpleKCM {
         }
 
         // --- Configuración Google Cloud TTS ---
-        QQC2.TextField {
+        RowLayout {
             visible: kcm.ttsEngine === "google"
             Kirigami.FormData.label: i18n("Clave de API de Google Cloud:")
             Layout.fillWidth: true
-            echoMode: TextInput.Password
-            placeholderText: i18n("Introduce tu API Key de Google Cloud Text-to-Speech")
-            text: kcm.googleApiKey
-            onTextEdited: kcm.googleApiKey = text.trim()
+
+            QQC2.TextField {
+                id: googleKeyField
+                Layout.fillWidth: true
+                echoMode: showGoogleKeyBtn.checked ? TextInput.Normal : TextInput.Password
+                placeholderText: i18n("Introduce tu API Key de Google Cloud Text-to-Speech")
+                text: kcm.googleApiKey
+                onTextEdited: kcm.googleApiKey = text.trim()
+            }
+
+            QQC2.ToolButton {
+                id: showGoogleKeyBtn
+                checkable: true
+                checked: false
+                icon.name: checked ? "view-visible" : "view-hidden"
+                QQC2.ToolTip.text: checked ? i18n("Ocultar clave") : i18n("Mostrar clave")
+                QQC2.ToolTip.visible: hovered
+            }
         }
 
         QQC2.ComboBox {
@@ -844,16 +867,30 @@ KCMUtils.SimpleKCM {
             QQC2.ToolTip.visible: hovered
         }
 
-        QQC2.TextField {
+        RowLayout {
             visible: kcm.aiBackend === "gemini" || kcm.aiBackend === "hybrid"
             Kirigami.FormData.label: i18n("Clave API de Gemini:")
             Layout.fillWidth: true
-            echoMode: TextInput.PasswordEchoOnEdit
-            placeholderText: kcm.googleApiKey.length > 0 ? i18n("Reutilizando clave de Google Cloud configurada en TTS arriba") : i18n("Introduce tu clave API de Google AI Studio / Gemini")
-            text: kcm.geminiApiKey
-            onTextEdited: kcm.geminiApiKey = text.trim()
-            QQC2.ToolTip.text: i18n("Si se deja en blanco, Kity reutilizará automáticamente la clave de Google Cloud API configurada para la síntesis de voz arriba.")
-            QQC2.ToolTip.visible: hovered
+
+            QQC2.TextField {
+                id: geminiKeyField
+                Layout.fillWidth: true
+                echoMode: showGeminiKeyBtn.checked ? TextInput.Normal : TextInput.Password
+                placeholderText: kcm.googleApiKey.length > 0 ? i18n("Reutilizando clave de Google Cloud configurada en TTS arriba") : i18n("Introduce tu clave API de Google AI Studio / Gemini")
+                text: kcm.geminiApiKey
+                onTextEdited: kcm.geminiApiKey = text.trim()
+                QQC2.ToolTip.text: i18n("Si se deja en blanco, Kity reutilizará automáticamente la clave de Google Cloud API configurada para la síntesis de voz arriba.")
+                QQC2.ToolTip.visible: hovered
+            }
+
+            QQC2.ToolButton {
+                id: showGeminiKeyBtn
+                checkable: true
+                checked: false
+                icon.name: checked ? "view-visible" : "view-hidden"
+                QQC2.ToolTip.text: checked ? i18n("Ocultar clave") : i18n("Mostrar clave")
+                QQC2.ToolTip.visible: hovered
+            }
         }
 
         RowLayout {
