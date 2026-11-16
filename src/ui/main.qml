@@ -197,13 +197,18 @@ KCMUtils.SimpleKCM {
             spacing: 16
 
             Rectangle {
+                id: previewBox
                 Layout.preferredWidth: 220
                 Layout.preferredHeight: 116
                 radius: 14
                 color: "#08080C"
                 border.width: 1
-                border.color: Qt.rgba(root.selectedOrbColor.r, root.selectedOrbColor.g, root.selectedOrbColor.b, 0.35)
+                border.color: Qt.rgba(root.selectedOrbColor.r, root.selectedOrbColor.g, root.selectedOrbColor.b, previewArea.containsMouse ? 0.75 : 0.35)
                 clip: true
+                scale: previewArea.pressed ? 0.95 : (previewArea.containsMouse ? 1.02 : 1.0)
+
+                Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+                Behavior on border.color { ColorAnimation { duration: 150 } }
 
                 // Ambient chromatic backdrop glow
                 Rectangle {
@@ -237,6 +242,9 @@ KCMUtils.SimpleKCM {
                     width: 42
                     height: 42
                     radius: 21
+                    scale: previewArea.pressed ? 0.86 : (previewArea.containsMouse ? 1.10 : 1.0)
+                    Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+
                     gradient: Gradient {
                         GradientStop { position: 0.0; color: Qt.lighter(root.selectedOrbColor, 1.45) }
                         GradientStop { position: 0.65; color: root.selectedOrbColor }
@@ -254,11 +262,16 @@ KCMUtils.SimpleKCM {
                     }
                 }
 
-                HoverHandler { id: previewBoxHover; cursorShape: Qt.PointingHandCursor }
-                TapHandler { onTapped: kcm.previewVoice() }
+                MouseArea {
+                    id: previewArea
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    hoverEnabled: true
+                    onClicked: kcm.previewVoice()
+                }
 
                 QQC2.ToolTip.text: i18n("Haz clic para escuchar la voz seleccionada")
-                QQC2.ToolTip.visible: previewBoxHover.hovered
+                QQC2.ToolTip.visible: previewArea.containsMouse
             }
 
             ColumnLayout {
@@ -342,7 +355,7 @@ KCMUtils.SimpleKCM {
                         }
                         border.width: 1
                         border.color: Qt.rgba(1, 1, 1, 0.45)
-                        scale: orbHover.hovered ? 1.15 : 1.0
+                        scale: orbArea.pressed ? 0.90 : (orbArea.containsMouse ? 1.15 : 1.0)
 
                         Behavior on scale { NumberAnimation { duration: 120 } }
 
@@ -357,10 +370,13 @@ KCMUtils.SimpleKCM {
                         }
                     }
 
-                    HoverHandler { id: orbHover; cursorShape: Qt.PointingHandCursor }
-                    TapHandler {
-                        onTapped: {
-                            kcm.voiceIndex = index;
+                    MouseArea {
+                        id: orbArea
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        hoverEnabled: true
+                        onClicked: {
+                            kcm.voiceIndex = orbItem.index;
                             kcm.previewVoice();
                         }
                     }
