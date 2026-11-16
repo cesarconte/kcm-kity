@@ -232,6 +232,7 @@ public:
     Q_INVOKABLE void openKnowledgeFolder() const;
     Q_INVOKABLE void restoreDefaultPrompt();
     Q_INVOKABLE void previewVoice();
+    Q_INVOKABLE void openShortcutsKCM() const;
     Q_INVOKABLE void addExcludedApp(const QString &appName);
     Q_INVOKABLE void removeExcludedApp(const QString &appName);
 

@@ -177,10 +177,20 @@ KCMUtils.SimpleKCM {
             }
         }
 
-        QQC2.Label {
+        RowLayout {
             Kirigami.FormData.label: i18n("Atajo de teclado:")
-            text: i18n("Meta + K (Píldora Rápida «Search or Ask»)")
-            font.bold: true
+            spacing: 12
+
+            QQC2.Label {
+                text: i18n("Meta + K (Píldora Rápida «Search or Ask»)")
+                font.bold: true
+            }
+
+            QQC2.Button {
+                text: i18n("Configurar atajos en KDE…")
+                icon.name: "configure-shortcuts"
+                onClicked: kcm.openShortcutsKCM()
+            }
         }
 
         // =====================================================================

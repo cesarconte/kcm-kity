@@ -906,6 +906,11 @@ void KcmKity::previewVoice()
     m_previewPlayProc->start(pwPlay, {QStringLiteral("-")});
 }
 
+void KcmKity::openShortcutsKCM() const
+{
+    QProcess::startDetached(QStringLiteral("kcmshell6"), {QStringLiteral("kcm_keys")});
+}
+
 void KcmKity::notifyDaemon()
 {
     QDBusInterface iface(QStringLiteral("org.cesar.kity"),
