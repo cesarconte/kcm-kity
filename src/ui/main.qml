@@ -397,6 +397,11 @@ KCMUtils.SimpleKCM {
                     to: 1.0
                     value: kcm.voicePace
                     onMoved: kcm.voicePace = value
+                    onPressedChanged: {
+                        if (!pressed) {
+                            kcm.previewVoice();
+                        }
+                    }
                 }
                 QQC2.Label {
                     text: (0.65 + kcm.voicePace * 0.75).toFixed(2) + "x"
@@ -427,6 +432,11 @@ KCMUtils.SimpleKCM {
                     to: 1.0
                     value: kcm.voiceExpressivity
                     onMoved: kcm.voiceExpressivity = value
+                    onPressedChanged: {
+                        if (!pressed) {
+                            kcm.previewVoice();
+                        }
+                    }
                 }
                 QQC2.Label {
                     text: Math.round(kcm.voiceExpressivity * 100) + "%"
