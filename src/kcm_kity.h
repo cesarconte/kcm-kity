@@ -7,6 +7,8 @@
 
 #include <KQuickConfigModule>
 #include <QNetworkAccessManager>
+#include <QPointer>
+#include <QProcess>
 #include <QStringList>
 
 class KcmKity : public KQuickConfigModule
@@ -283,6 +285,8 @@ private:
     void notifyDaemon();
 
     QNetworkAccessManager *m_nam = nullptr;
+    QPointer<QProcess> m_previewTtsProc;
+    QPointer<QProcess> m_previewPlayProc;
 
     QString m_sttEngine = QStringLiteral("gemini");
     bool m_wakeWordEnabled = true;

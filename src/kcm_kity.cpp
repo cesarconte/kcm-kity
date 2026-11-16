@@ -808,6 +808,23 @@ void KcmKity::removeExcludedApp(const QString &appName)
 void KcmKity::previewVoice()
 {
     save();
+    notifyDaemon();
+
+    if (m_previewPlayProc) {
+        if (m_previewPlayProc->state() == QProcess::Running) {
+            m_previewPlayProc->kill();
+        }
+        m_previewPlayProc->deleteLater();
+        m_previewPlayProc = nullptr;
+    }
+    if (m_previewTtsProc) {
+        if (m_previewTtsProc->state() == QProcess::Running) {
+            m_previewTtsProc->kill();
+        }
+        m_previewTtsProc->deleteLater();
+        m_previewTtsProc = nullptr;
+    }
+
     const QString edgeCli = QStandardPaths::findExecutable(QStringLiteral("kity-edge-tts"));
     const QString pwPlay = QStandardPaths::findExecutable(QStringLiteral("pw-play"));
     if (edgeCli.isEmpty() || pwPlay.isEmpty()) {
@@ -859,17 +876,25 @@ void KcmKity::previewVoice()
     const QString sampleText = (m_voiceAccent.contains(QLatin1String("American"), Qt::CaseInsensitive)
                                 || m_voiceAccent.contains(QLatin1String("British"), Qt::CaseInsensitive))
         ? QStringLiteral("Hello, I'm Kity in macOS Golden Gate. You can customize my voice, pace, and expressivity.")
-        : QStringLiteral("Hola, soy Kity en macOS Golden Gate. Puedes ajustar mi voz, ritmo y expresividad a tu gusto.");
+        : QStringLiteral("Hola, soy Kity. Puedes personalizar mi voz, ritmo y expresividad como en macOS.");
 
-    auto *ttsProc = new QProcess(this);
-    auto *playProc = new QProcess(this);
-    ttsProc->setStandardOutputProcess(playProc);
-    connect(playProc, &QProcess::finished, this, [ttsProc, playProc](int, QProcess::ExitStatus) {
-        playProc->deleteLater();
-        ttsProc->deleteLater();
+    m_previewTtsProc = new QProcess(this);
+    m_previewPlayProc = new QProcess(this);
+    m_previewTtsProc->setStandardOutputProcess(m_previewPlayProc.data());
+
+    connect(m_previewPlayProc.data(), &QProcess::finished, this, [this](int, QProcess::ExitStatus) {
+        if (m_previewPlayProc) {
+            m_previewPlayProc->deleteLater();
+            m_previewPlayProc = nullptr;
+        }
+        if (m_previewTtsProc) {
+            m_previewTtsProc->deleteLater();
+            m_previewTtsProc = nullptr;
+        }
     });
-    ttsProc->start(edgeCli, {QStringLiteral("--voice"), voice, rateArg, pitchArg, QStringLiteral("--text"), sampleText, QStringLiteral("--write-media"), QStringLiteral("-")});
-    playProc->start(pwPlay, {QStringLiteral("-")});
+
+    m_previewTtsProc->start(edgeCli, {QStringLiteral("--voice"), voice, rateArg, pitchArg, QStringLiteral("--text"), sampleText, QStringLiteral("--write-media"), QStringLiteral("-")});
+    m_previewPlayProc->start(pwPlay, {QStringLiteral("-")});
 }
 
 void KcmKity::notifyDaemon()

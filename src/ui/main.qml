@@ -188,61 +188,102 @@ KCMUtils.SimpleKCM {
             Kirigami.FormData.label: i18n("Personalizar la voz de Kity (Voz, Variante, Ritmo y Expresividad)")
         }
 
+        readonly property var chromaticOrbColors: ["#30D158", "#FFD60A", "#FF9F0A", "#FF375F", "#BF5AF2", "#5E5CE6", "#64D2FF"]
+        readonly property color selectedOrbColor: chromaticOrbColors[Math.max(0, Math.min(6, kcm.voiceIndex))]
+
         RowLayout {
             Kirigami.FormData.label: i18n("Vista previa acústica:")
             Layout.fillWidth: true
-            spacing: 12
+            spacing: 16
 
             Rectangle {
-                Layout.preferredWidth: 210
-                Layout.preferredHeight: 110
-                radius: 12
-                color: "#070709"
+                Layout.preferredWidth: 220
+                Layout.preferredHeight: 116
+                radius: 14
+                color: "#08080C"
                 border.width: 1
-                border.color: Qt.rgba(1, 1, 1, 0.18)
+                border.color: Qt.rgba(selectedOrbColor.r, selectedOrbColor.g, selectedOrbColor.b, 0.35)
                 clip: true
+
+                // Ambient chromatic backdrop glow
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: 130
+                    height: 80
+                    radius: 40
+                    color: selectedOrbColor
+                    opacity: 0.14 + 0.08 * Math.sin(root.kcmAnimTime * 2.5)
+                }
 
                 Repeater {
                     model: 4
                     Rectangle {
                         required property int index
                         anchors.centerIn: parent
-                        readonly property real waveScale: 1.0 + 0.12 * Math.sin(root.kcmAnimTime * 3.0 - index * 0.9)
-                        width: (40 + index * 20) * waveScale
-                        height: (40 + index * 20) * waveScale
-                        radius: width * 0.38
-                        rotation: index * 22.5 + root.kcmAnimTime * 12
+                        readonly property real waveScale: 1.0 + 0.14 * Math.sin(root.kcmAnimTime * 3.0 - index * 0.85)
+                        width: (38 + index * 22) * waveScale
+                        height: (38 + index * 22) * waveScale
+                        radius: width * 0.42
+                        rotation: index * 25.0 + root.kcmAnimTime * 14
                         color: "transparent"
-                        border.width: 1.3
-                        border.color: Qt.rgba(1, 1, 1, (0.28 - index * 0.05) * (0.5 + kcm.voiceExpressivity * 0.5))
+                        border.width: 1.4
+                        border.color: Qt.rgba(selectedOrbColor.r, selectedOrbColor.g, selectedOrbColor.b, (0.35 - index * 0.07) * (0.5 + kcm.voiceExpressivity * 0.5))
                     }
                 }
 
+                // Central Liquid Glass Siri Sphere
                 Rectangle {
                     anchors.centerIn: parent
-                    width: 38
-                    height: 38
-                    radius: 19
-                    color: Qt.rgba(1, 1, 1, 0.24)
-                    Rectangle {
+                    width: 42
+                    height: 42
+                    radius: 21
+                    gradient: Gradient {
+                        GradientStop { position: 0.0; color: Qt.lighter(selectedOrbColor, 1.45) }
+                        GradientStop { position: 0.65; color: selectedOrbColor }
+                        GradientStop { position: 1.0; color: Qt.darker(selectedOrbColor, 1.35) }
+                    }
+                    border.width: 1.5
+                    border.color: Qt.rgba(1, 1, 1, 0.65)
+
+                    Kirigami.Icon {
                         anchors.centerIn: parent
-                        width: 24
-                        height: 24
-                        radius: 12
+                        source: "media-playback-start"
+                        width: 16
+                        height: 16
                         color: "#FFFFFF"
                     }
                 }
 
-                HoverHandler { cursorShape: Qt.PointingHandCursor }
+                HoverHandler { id: previewBoxHover; cursorShape: Qt.PointingHandCursor }
                 TapHandler { onTapped: kcm.previewVoice() }
+
+                QQC2.ToolTip.text: i18n("Haz clic para escuchar la voz seleccionada")
+                QQC2.ToolTip.visible: previewBoxHover.hovered
             }
 
-            QQC2.Label {
+            ColumnLayout {
                 Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-                font.pixelSize: 12
-                opacity: 0.78
-                text: i18n("Haz clic en el orbe acústico o en cualquiera de las 7 voces numeradas para escuchar una muestra en tiempo real con la variante, ritmo y expresividad seleccionados.")
+                spacing: 4
+
+                QQC2.Label {
+                    text: i18n("Voz %1 (%2)").arg(kcm.voiceIndex + 1).arg(kcm.voiceAccent)
+                    font.weight: Font.DemiBold
+                    font.pixelSize: 13
+                }
+
+                QQC2.Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    font.pixelSize: 12
+                    opacity: 0.78
+                    text: i18n("Pulsa sobre el orbe central o selecciona una de las 7 variantes cromáticas abajo para escuchar en directo la cadencia y expresividad ajustadas.")
+                }
+
+                QQC2.Button {
+                    icon.name: "media-playback-start"
+                    text: i18n("Escuchar muestra de voz")
+                    onClicked: kcm.previewVoice()
+                }
             }
         }
 
@@ -259,45 +300,64 @@ KCMUtils.SimpleKCM {
 
         RowLayout {
             Kirigami.FormData.label: i18n("Voz (1–7):")
-            spacing: 10
+            spacing: 12
 
             Repeater {
-                model: ["#30D158", "#FFD60A", "#FF9F0A", "#FF375F", "#BF5AF2", "#5E5CE6", "#64D2FF"]
+                model: chromaticOrbColors
 
                 Item {
+                    id: orbItem
                     required property string modelData
                     required property int index
-                    width: 26
-                    height: 26
+                    width: 32
+                    height: 32
                     readonly property bool isSel: kcm.voiceIndex === index
 
+                    // Selection glowing aura
                     Rectangle {
                         anchors.centerIn: parent
-                        width: 26
-                        height: 26
-                        radius: 13
+                        width: parent.isSel ? 36 : 30
+                        height: parent.isSel ? 36 : 30
+                        radius: width / 2
                         color: "transparent"
-                        border.width: parent.isSel ? 2 : 0
+                        border.width: parent.isSel ? 2.5 : 0
                         border.color: parent.modelData
+                        opacity: parent.isSel ? 1.0 : 0.0
+
+                        Behavior on width { NumberAnimation { duration: 160 } }
+                        Behavior on height { NumberAnimation { duration: 160 } }
+                        Behavior on opacity { NumberAnimation { duration: 160 } }
                     }
 
+                    // Sphere Orb Body with 3D Radial Highlight
                     Rectangle {
                         anchors.centerIn: parent
-                        width: 19
-                        height: 19
-                        radius: 9.5
-                        color: parent.modelData
+                        width: parent.isSel ? 26 : 24
+                        height: parent.isSel ? 26 : 24
+                        radius: width / 2
+                        gradient: Gradient {
+                            GradientStop { position: 0.0; color: Qt.lighter(orbItem.modelData, 1.4) }
+                            GradientStop { position: 0.7; color: orbItem.modelData }
+                            GradientStop { position: 1.0; color: Qt.darker(orbItem.modelData, 1.25) }
+                        }
+                        border.width: 1
+                        border.color: Qt.rgba(1, 1, 1, 0.45)
+                        scale: orbHover.hovered ? 1.15 : 1.0
+
+                        Behavior on scale { NumberAnimation { duration: 120 } }
+
                         QQC2.Label {
                             anchors.centerIn: parent
-                            visible: parent.parent.isSel
-                            text: (parent.parent.index + 1).toString()
+                            text: (orbItem.index + 1).toString()
                             color: "#FFFFFF"
-                            font.pixelSize: 10
+                            font.pixelSize: 11
                             font.bold: true
+                            style: Text.Outline
+                            styleColor: Qt.rgba(0, 0, 0, 0.45)
                         }
                     }
 
-                    HoverHandler { cursorShape: Qt.PointingHandCursor }
+                    HoverHandler { id: orbHover; cursorShape: Qt.PointingHandCursor }
                     TapHandler {
                         onTapped: {
                             kcm.voiceIndex = index;
@@ -308,22 +368,64 @@ KCMUtils.SimpleKCM {
             }
         }
 
-        QQC2.Slider {
+        ColumnLayout {
             Kirigami.FormData.label: i18n("Ritmo (Pace):")
             Layout.fillWidth: true
-            from: 0.0
-            to: 1.0
-            value: kcm.voicePace
-            onMoved: kcm.voicePace = value
+            spacing: 2
+
+            RowLayout {
+                Layout.fillWidth: true
+                QQC2.Slider {
+                    Layout.fillWidth: true
+                    from: 0.0
+                    to: 1.0
+                    value: kcm.voicePace
+                    onMoved: kcm.voicePace = value
+                }
+                QQC2.Label {
+                    text: (0.65 + kcm.voicePace * 0.75).toFixed(2) + "x"
+                    font.bold: true
+                    Layout.preferredWidth: 42
+                }
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                QQC2.Label { text: i18n("Lento"); font.pixelSize: 10; opacity: 0.6 }
+                Item { Layout.fillWidth: true }
+                QQC2.Label { text: i18n("Normal"); font.pixelSize: 10; opacity: 0.6 }
+                Item { Layout.fillWidth: true }
+                QQC2.Label { text: i18n("Rápido"); font.pixelSize: 10; opacity: 0.6 }
+            }
         }
 
-        QQC2.Slider {
+        ColumnLayout {
             Kirigami.FormData.label: i18n("Expresividad (Expressivity):")
             Layout.fillWidth: true
-            from: 0.0
-            to: 1.0
-            value: kcm.voiceExpressivity
-            onMoved: kcm.voiceExpressivity = value
+            spacing: 2
+
+            RowLayout {
+                Layout.fillWidth: true
+                QQC2.Slider {
+                    Layout.fillWidth: true
+                    from: 0.0
+                    to: 1.0
+                    value: kcm.voiceExpressivity
+                    onMoved: kcm.voiceExpressivity = value
+                }
+                QQC2.Label {
+                    text: Math.round(kcm.voiceExpressivity * 100) + "%"
+                    font.bold: true
+                    Layout.preferredWidth: 42
+                }
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                QQC2.Label { text: i18n("Sereno"); font.pixelSize: 10; opacity: 0.6 }
+                Item { Layout.fillWidth: true }
+                QQC2.Label { text: i18n("Equilibrado"); font.pixelSize: 10; opacity: 0.6 }
+                Item { Layout.fillWidth: true }
+                QQC2.Label { text: i18n("Muy dinámico"); font.pixelSize: 10; opacity: 0.6 }
+            }
         }
 
         // =====================================================================
