@@ -14,6 +14,7 @@ class KcmKity : public KQuickConfigModule
     Q_OBJECT
 
     // Voice & Audio
+    Q_PROPERTY(QString sttEngine READ sttEngine WRITE setSttEngine NOTIFY sttEngineChanged)
     Q_PROPERTY(bool wakeWordEnabled READ wakeWordEnabled WRITE setWakeWordEnabled NOTIFY wakeWordEnabledChanged)
     Q_PROPERTY(QString speechOutputMode READ speechOutputMode WRITE setSpeechOutputMode NOTIFY speechOutputModeChanged)
     Q_PROPERTY(bool earconsEnabled READ earconsEnabled WRITE setEarconsEnabled NOTIFY earconsEnabledChanged)
@@ -88,6 +89,9 @@ public:
     void defaults() override;
 
     // Getters & Setters
+    QString sttEngine() const { return m_sttEngine; }
+    void setSttEngine(const QString &v);
+
     bool wakeWordEnabled() const { return m_wakeWordEnabled; }
     void setWakeWordEnabled(bool v);
 
@@ -227,6 +231,7 @@ public:
 
 Q_SIGNALS:
     void goldenGateChanged();
+    void sttEngineChanged();
     void wakeWordEnabledChanged();
     void speechOutputModeChanged();
     void earconsEnabledChanged();
@@ -274,6 +279,7 @@ private:
 
     QNetworkAccessManager *m_nam = nullptr;
 
+    QString m_sttEngine = QStringLiteral("gemini");
     bool m_wakeWordEnabled = true;
     QString m_speechOutputMode = QStringLiteral("always");
     bool m_earconsEnabled = true;

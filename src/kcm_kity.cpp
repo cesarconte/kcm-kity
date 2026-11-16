@@ -49,6 +49,7 @@ void KcmKity::load()
     KSharedConfig::Ptr config = KSharedConfig::openConfig(QStringLiteral("kityrc"));
     KConfigGroup cfg = config->group(QStringLiteral("General"));
 
+    m_sttEngine = cfg.readEntry(QStringLiteral("sttEngine"), QStringLiteral("gemini"));
     m_wakeWordEnabled = cfg.readEntry(QStringLiteral("wakeWordEnabled"), true);
     m_speechOutputMode = cfg.readEntry(QStringLiteral("speechOutputMode"), QStringLiteral("always"));
     m_earconsEnabled = cfg.readEntry(QStringLiteral("earconsEnabled"), true);
@@ -104,6 +105,7 @@ void KcmKity::load()
     m_excludedApps = cfg.readEntry(QStringLiteral("excludedApps"), QStringList());
 
     Q_EMIT goldenGateChanged();
+    Q_EMIT sttEngineChanged();
     Q_EMIT wakeWordEnabledChanged();
     Q_EMIT speechOutputModeChanged();
     Q_EMIT earconsEnabledChanged();
@@ -148,6 +150,7 @@ void KcmKity::save()
     KSharedConfig::Ptr config = KSharedConfig::openConfig(QStringLiteral("kityrc"));
     KConfigGroup cfg = config->group(QStringLiteral("General"));
 
+    cfg.writeEntry(QStringLiteral("sttEngine"), m_sttEngine);
     cfg.writeEntry(QStringLiteral("wakeWordEnabled"), m_wakeWordEnabled);
     cfg.writeEntry(QStringLiteral("speechOutputMode"), m_speechOutputMode);
     cfg.writeEntry(QStringLiteral("earconsEnabled"), m_earconsEnabled);
@@ -207,6 +210,7 @@ void KcmKity::save()
 
 void KcmKity::defaults()
 {
+    setSttEngine(QStringLiteral("gemini"));
     setWakeWordEnabled(true);
     setSpeechOutputMode(QStringLiteral("always"));
     setEarconsEnabled(true);
@@ -247,11 +251,20 @@ void KcmKity::defaults()
     setNeedsSave(true);
 }
 
+void KcmKity::setSttEngine(const QString &v)
+{
+    if (m_sttEngine != v) {
+        m_sttEngine = v;
+        Q_EMIT sttEngineChanged();
+    }
+}
+
 void KcmKity::setWakeWordEnabled(bool v)
 {
     if (m_wakeWordEnabled != v) {
         m_wakeWordEnabled = v;
-        Q_EMIT wakeWordEnabledChanged();
+        Q_EMIT sttEngineChanged();
+    Q_EMIT wakeWordEnabledChanged();
         setNeedsSave(true);
     }
 }

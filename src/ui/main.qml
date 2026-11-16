@@ -557,32 +557,87 @@ KCMUtils.SimpleKCM {
             onToggled: kcm.autoListenOnActivate = checked
         }
 
-        RowLayout {
-            Kirigami.FormData.label: i18n("Modelo Whisper (.bin):")
+        QQC2.ComboBox {
+            Kirigami.FormData.label: i18n("Motor de Reconocimiento de Voz (STT):")
             Layout.fillWidth: true
-            Layout.minimumWidth: 0
+            model: [
+                { text: i18n("Google Gemini 2.0 Flash (Nube — Máxima precisión y comprensión de voz)"), value: "gemini" },
+                { text: i18n("Whisper.cpp (Local / Offline — Privado e independiente de la red)"), value: "whisper" }
+            ]
+            textRole: "text"
+            valueRole: "value"
+            currentIndex: {
+                for (var i = 0; i < model.length; ++i) {
+                    if (model[i].value === kcm.sttEngine) return i;
+                }
+                return 0;
+            }
+            onActivated: {
+                kcm.sttEngine = model[currentIndex].value;
+            }
+        }
 
-            QQC2.TextField {
+        Kirigami.InlineMessage {
+            visible: kcm.sttEngine === "gemini"
+            Layout.fillWidth: true
+            type: Kirigami.MessageType.Information
+            text: i18n("Gemini 2.0 Flash procesa directamente el audio en la nube con la máxima fidelidad y sin coste. Utiliza la clave de API configurada abajo en «Cerebro IA / Proveedor de Inteligencia». Si no hay clave, cambiará automáticamente a Whisper local.")
+        }
+
+        ColumnLayout {
+            visible: kcm.sttEngine === "whisper"
+            Layout.fillWidth: true
+            spacing: Kirigami.Units.smallSpacing
+
+            QQC2.ComboBox {
+                Kirigami.FormData.label: i18n("Modelo Whisper local:")
+                Layout.fillWidth: true
+                model: [
+                    { text: i18n("Whisper Small (466 MB — Recomendado: equilibrio óptimo precisión/velocidad)"), value: "/home/cesar/.local/share/kity/models/ggml-small.bin" },
+                    { text: i18n("Whisper Base (142 MB — Ultraligero, menor uso de memoria)"), value: "/home/cesar/.local/share/kity/models/ggml-base.bin" },
+                    { text: i18n("Personalizado / Otra ruta…"), value: "custom" }
+                ]
+                textRole: "text"
+                valueRole: "value"
+                currentIndex: {
+                    if (kcm.whisperModelPath.indexOf("small") !== -1 || kcm.whisperModelPath === "") return 0;
+                    if (kcm.whisperModelPath.indexOf("base") !== -1) return 1;
+                    return 2;
+                }
+                onActivated: {
+                    var val = model[currentIndex].value;
+                    if (val !== "custom") {
+                        kcm.whisperModelPath = val;
+                    }
+                }
+            }
+
+            RowLayout {
                 Layout.fillWidth: true
                 Layout.minimumWidth: 0
-                placeholderText: i18n("Detección automática en ~/.local/share/kity/models/")
-                text: kcm.whisperModelPath
-                onTextEdited: kcm.whisperModelPath = text.trim()
-            }
 
-            QQC2.Button {
-                icon.name: "document-open"
-                text: i18n("Examinar…")
-                onClicked: whisperFileDialog.open()
-            }
+                QQC2.TextField {
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 0
+                    placeholderText: i18n("Ruta al archivo .bin del modelo Whisper")
+                    text: kcm.whisperModelPath
+                    onTextEdited: kcm.whisperModelPath = text.trim()
+                }
 
-            Kirigami.Icon {
-                source: kcm.whisperFound ? "emblem-checked" : "emblem-warning"
-                implicitWidth: Kirigami.Units.iconSizes.small
-                implicitHeight: Kirigami.Units.iconSizes.small
-                QQC2.ToolTip.text: kcm.whisperFound ? i18n("Modelo Whisper detectado y listo") : i18n("Modelo no encontrado en la ruta indicada")
-                QQC2.ToolTip.visible: whisperStatusHover.hovered
-                HoverHandler { id: whisperStatusHover }
+                QQC2.Button {
+                    icon.name: "document-open"
+                    text: i18n("Examinar…")
+                    onClicked: whisperFileDialog.open()
+                }
+
+                Kirigami.Icon {
+                    source: kcm.whisperFound ? "emblem-checked" : "emblem-warning"
+                    implicitWidth: Kirigami.Units.iconSizes.small
+                    implicitHeight: Kirigami.Units.iconSizes.small
+                    QQC2.ToolTip.text: kcm.whisperFound ? i18n("Modelo Whisper detectado y listo") : i18n("Modelo no encontrado en la ruta indicada")
+                    QQC2.ToolTip.visible: whisperStatusHover.hovered
+                    HoverHandler { id: whisperStatusHover }
+                }
             }
         }
 
