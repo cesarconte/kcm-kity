@@ -24,6 +24,7 @@ class KcmKity : public KQuickConfigModule
     Q_PROPERTY(bool vadEnabled READ vadEnabled WRITE setVadEnabled NOTIFY vadEnabledChanged)
     Q_PROPERTY(int vadSilenceTimeoutMs READ vadSilenceTimeoutMs WRITE setVadSilenceTimeoutMs NOTIFY vadSilenceTimeoutMsChanged)
     Q_PROPERTY(bool autoListenOnActivate READ autoListenOnActivate WRITE setAutoListenOnActivate NOTIFY autoListenOnActivateChanged)
+    Q_PROPERTY(bool useCentralizedVoice READ useCentralizedVoice WRITE setUseCentralizedVoice NOTIFY useCentralizedVoiceChanged)
     Q_PROPERTY(QString whisperLanguage READ whisperLanguage WRITE setWhisperLanguage NOTIFY whisperLanguageChanged)
     Q_PROPERTY(QString whisperModelPath READ whisperModelPath WRITE setWhisperModelPath NOTIFY whisperModelPathChanged)
     Q_PROPERTY(QString piperVoicePath READ piperVoicePath WRITE setPiperVoicePath NOTIFY piperVoicePathChanged)
@@ -115,6 +116,9 @@ public:
 
     bool autoListenOnActivate() const { return m_autoListenOnActivate; }
     void setAutoListenOnActivate(bool v);
+
+    bool useCentralizedVoice() const { return m_useCentralizedVoice; }
+    void setUseCentralizedVoice(bool v);
 
     QString whisperLanguage() const { return m_whisperLanguage; }
     void setWhisperLanguage(const QString &v);
@@ -246,6 +250,7 @@ Q_SIGNALS:
     void vadEnabledChanged();
     void vadSilenceTimeoutMsChanged();
     void autoListenOnActivateChanged();
+    void useCentralizedVoiceChanged();
     void whisperLanguageChanged();
     void whisperModelPathChanged();
     void piperVoicePathChanged();
@@ -297,6 +302,7 @@ private:
     bool m_vadEnabled = true;
     int m_vadSilenceTimeoutMs = 1300;
     bool m_autoListenOnActivate = false;
+    bool m_useCentralizedVoice = true;
     QString m_whisperLanguage = QStringLiteral("es");
     QString m_whisperModelPath;
     QString m_piperVoicePath;

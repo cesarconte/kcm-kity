@@ -57,6 +57,7 @@ void KcmKity::load()
     m_vadEnabled = cfg.readEntry(QStringLiteral("vadEnabled"), true);
     m_vadSilenceTimeoutMs = cfg.readEntry(QStringLiteral("vadSilenceTimeoutMs"), 1300);
     m_autoListenOnActivate = cfg.readEntry(QStringLiteral("autoListenOnActivate"), false);
+    m_useCentralizedVoice = cfg.readEntry(QStringLiteral("useCentralizedVoice"), true);
     m_whisperLanguage = cfg.readEntry(QStringLiteral("whisperLanguage"), QStringLiteral("es"));
     m_whisperModelPath = cfg.readEntry(QStringLiteral("whisperModelPath"), QString());
     m_piperVoicePath = cfg.readEntry(QStringLiteral("piperVoicePath"), QString());
@@ -114,6 +115,7 @@ void KcmKity::load()
     Q_EMIT vadEnabledChanged();
     Q_EMIT vadSilenceTimeoutMsChanged();
     Q_EMIT autoListenOnActivateChanged();
+    Q_EMIT useCentralizedVoiceChanged();
     Q_EMIT whisperLanguageChanged();
     Q_EMIT whisperModelPathChanged();
     Q_EMIT piperVoicePathChanged();
@@ -160,6 +162,7 @@ void KcmKity::save()
     cfg.writeEntry(QStringLiteral("vadEnabled"), m_vadEnabled);
     cfg.writeEntry(QStringLiteral("vadSilenceTimeoutMs"), m_vadSilenceTimeoutMs);
     cfg.writeEntry(QStringLiteral("autoListenOnActivate"), m_autoListenOnActivate);
+    cfg.writeEntry(QStringLiteral("useCentralizedVoice"), m_useCentralizedVoice);
     cfg.writeEntry(QStringLiteral("whisperLanguage"), m_whisperLanguage);
     cfg.writeEntry(QStringLiteral("whisperModelPath"), m_whisperModelPath);
     cfg.writeEntry(QStringLiteral("piperVoicePath"), m_piperVoicePath);
@@ -221,6 +224,7 @@ void KcmKity::defaults()
     setVadEnabled(true);
     setVadSilenceTimeoutMs(1300);
     setAutoListenOnActivate(false);
+    setUseCentralizedVoice(true);
     setWhisperLanguage(QStringLiteral("es"));
     setWhisperModelPath(QString());
     setPiperVoicePath(QString());
@@ -322,6 +326,15 @@ void KcmKity::setAutoListenOnActivate(bool v)
     if (m_autoListenOnActivate != v) {
         m_autoListenOnActivate = v;
         Q_EMIT autoListenOnActivateChanged();
+        setNeedsSave(true);
+    }
+}
+
+void KcmKity::setUseCentralizedVoice(bool v)
+{
+    if (m_useCentralizedVoice != v) {
+        m_useCentralizedVoice = v;
+        Q_EMIT useCentralizedVoiceChanged();
         setNeedsSave(true);
     }
 }

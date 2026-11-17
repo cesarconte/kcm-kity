@@ -704,6 +704,15 @@ KCMUtils.SimpleKCM {
             onToggled: kcm.autoListenOnActivate = checked
         }
 
+        QQC2.CheckBox {
+            Kirigami.FormData.label: i18n("Voz centralizada:")
+            text: i18n("Usar motor de voz centralizado (KDictation vía D-Bus) [Recomendado]")
+            checked: kcm.useCentralizedVoice
+            onToggled: kcm.useCentralizedVoice = checked
+            QQC2.ToolTip.text: i18n("Transcribe el audio a través de KDictation vía D-Bus para reducir la memoria RAM de plasmashell y garantizar máxima estabilidad.")
+            QQC2.ToolTip.visible: hovered
+        }
+
         QQC2.ComboBox {
             Kirigami.FormData.label: i18n("Motor de Reconocimiento de Voz (STT):")
             Layout.fillWidth: true
