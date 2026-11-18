@@ -30,10 +30,13 @@ kcmshell6 kcm_kity
 ### Pasos
 
 ```bash
-cmake -B build -S . -DCMAKE_INSTALL_PREFIX=$HOME/.local -DCMAKE_BUILD_TYPE=Release
+cmake -B build -S . -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j$(nproc)
-cmake --install build
+sudo cmake --install build
 ```
+
+> [!IMPORTANT]
+> **Política de instalación**: La instalación de KCM Kity se realiza **exclusivamente en `/usr`** para evitar sombreado (*shadowing*) de bibliotecas en Qt6/KDE Plasma. Nunca instalar en `~/.local`.
 
 ## Licencia
 
