@@ -6,10 +6,12 @@
 #pragma once
 
 #include <KQuickConfigModule>
-#include <QNetworkAccessManager>
-#include <QPointer>
-#include <QProcess>
 #include <QStringList>
+
+#include "kityconfigdata.h"
+
+class OllamaModelScanner;
+class VoicePreviewEngine;
 
 class KcmKity : public KQuickConfigModule
 {
@@ -62,7 +64,7 @@ class KcmKity : public KQuickConfigModule
     Q_PROPERTY(QString defaultEmailClient READ defaultEmailClient WRITE setDefaultEmailClient NOTIFY defaultEmailClientChanged)
     Q_PROPERTY(QString defaultCalendarClient READ defaultCalendarClient WRITE setDefaultCalendarClient NOTIFY defaultCalendarClientChanged)
 
-    // macOS 27 Golden Gate Voice & Assistant Experience (Apple Guide mchl3fd7fc15 & q7ny3g54v9lk)
+    // macOS Golden Gate Voice & Assistant Experience
     Q_PROPERTY(QString voiceAccent READ voiceAccent WRITE setVoiceAccent NOTIFY goldenGateChanged)
     Q_PROPERTY(int voiceIndex READ voiceIndex WRITE setVoiceIndex NOTIFY goldenGateChanged)
     Q_PROPERTY(double voicePace READ voicePace WRITE setVoicePace NOTIFY goldenGateChanged)
@@ -92,145 +94,125 @@ public:
     void save() override;
     void defaults() override;
 
-    // Getters & Setters
-    QString sttEngine() const { return m_sttEngine; }
-    void setSttEngine(const QString &v);
+    // Getters
+    QString sttEngine() const { return m_cfg.sttEngine; }
+    bool wakeWordEnabled() const { return m_cfg.wakeWordEnabled; }
+    bool continuousConversation() const { return m_cfg.continuousConversation; }
+    QString speechOutputMode() const { return m_cfg.speechOutputMode; }
+    bool earconsEnabled() const { return m_cfg.earconsEnabled; }
+    bool vadEnabled() const { return m_cfg.vadEnabled; }
+    int vadSilenceTimeoutMs() const { return m_cfg.vadSilenceTimeoutMs; }
+    bool autoListenOnActivate() const { return m_cfg.autoListenOnActivate; }
+    bool useCentralizedVoice() const { return m_cfg.useCentralizedVoice; }
+    QString whisperLanguage() const { return m_cfg.whisperLanguage; }
+    QString whisperModelPath() const { return m_cfg.whisperModelPath; }
+    QString piperVoicePath() const { return m_cfg.piperVoicePath; }
 
-    bool wakeWordEnabled() const { return m_wakeWordEnabled; }
-    void setWakeWordEnabled(bool v);
+    QString ttsEngine() const { return m_cfg.ttsEngine; }
+    QString googleApiKey() const { return m_cfg.googleApiKey; }
+    QString googleVoice() const { return m_cfg.googleVoice; }
+    QString edgeVoice() const { return m_cfg.edgeVoice; }
+    QString kokoroVoice() const { return m_cfg.kokoroVoice; }
 
-    bool continuousConversation() const { return m_continuousConversation; }
-    void setContinuousConversation(bool v);
+    QString aiBackend() const { return m_cfg.aiBackend; }
+    QString geminiModel() const { return m_cfg.geminiModel; }
+    QString geminiApiKey() const { return m_cfg.geminiApiKey; }
 
-    QString speechOutputMode() const { return m_speechOutputMode; }
-    void setSpeechOutputMode(const QString &v);
+    QString ollamaUrl() const { return m_cfg.ollamaUrl; }
+    QString ollamaModel() const { return m_cfg.ollamaModel; }
+    QString ollamaVisionModel() const { return m_cfg.ollamaVisionModel; }
+    double ollamaTemperature() const { return m_cfg.ollamaTemperature; }
+    int ollamaNumCtx() const { return m_cfg.ollamaNumCtx; }
+    int ollamaNumThread() const { return m_cfg.ollamaNumThread; }
+    int ollamaNumPredict() const { return m_cfg.ollamaNumPredict; }
+    QString ollamaKeepAlive() const { return m_cfg.ollamaKeepAlive; }
+    QString systemPrompt() const { return m_cfg.systemPrompt; }
 
-    bool earconsEnabled() const { return m_earconsEnabled; }
-    void setEarconsEnabled(bool v);
+    bool knowledgeBaseEnabled() const { return m_cfg.knowledgeBaseEnabled; }
+    int knowledgeBaseMaxSnippets() const { return m_cfg.knowledgeBaseMaxSnippets; }
 
-    bool vadEnabled() const { return m_vadEnabled; }
-    void setVadEnabled(bool v);
+    QString panelIconStyle() const { return m_cfg.panelIconStyle; }
+    bool pin() const { return m_cfg.pin; }
+    QString defaultEmailClient() const { return m_cfg.defaultEmailClient; }
+    QString defaultCalendarClient() const { return m_cfg.defaultCalendarClient; }
 
-    int vadSilenceTimeoutMs() const { return m_vadSilenceTimeoutMs; }
-    void setVadSilenceTimeoutMs(int v);
-
-    bool autoListenOnActivate() const { return m_autoListenOnActivate; }
-    void setAutoListenOnActivate(bool v);
-
-    bool useCentralizedVoice() const { return m_useCentralizedVoice; }
-    void setUseCentralizedVoice(bool v);
-
-    QString whisperLanguage() const { return m_whisperLanguage; }
-    void setWhisperLanguage(const QString &v);
-
-    QString whisperModelPath() const { return m_whisperModelPath; }
-    void setWhisperModelPath(const QString &v);
-
-    QString piperVoicePath() const { return m_piperVoicePath; }
-    void setPiperVoicePath(const QString &v);
-
-    QString ttsEngine() const { return m_ttsEngine; }
-    void setTtsEngine(const QString &v);
-
-    QString googleApiKey() const { return m_googleApiKey; }
-    void setGoogleApiKey(const QString &v);
-
-    QString googleVoice() const { return m_googleVoice; }
-    void setGoogleVoice(const QString &v);
-
-    QString edgeVoice() const { return m_edgeVoice; }
-    void setEdgeVoice(const QString &v);
-
-    QString kokoroVoice() const { return m_kokoroVoice; }
-    void setKokoroVoice(const QString &v);
-
-    QString aiBackend() const { return m_aiBackend; }
-    void setAiBackend(const QString &v);
-
-    QString geminiModel() const { return m_geminiModel; }
-    void setGeminiModel(const QString &v);
-
-    QString geminiApiKey() const { return m_geminiApiKey; }
-    void setGeminiApiKey(const QString &v);
-
-    QString ollamaUrl() const { return m_ollamaUrl; }
-    void setOllamaUrl(const QString &v);
-
-    QString ollamaModel() const { return m_ollamaModel; }
-    void setOllamaModel(const QString &v);
-
-    QString ollamaVisionModel() const { return m_ollamaVisionModel; }
-    void setOllamaVisionModel(const QString &v);
-
-    double ollamaTemperature() const { return m_ollamaTemperature; }
-    void setOllamaTemperature(double v);
-
-    int ollamaNumCtx() const { return m_ollamaNumCtx; }
-    void setOllamaNumCtx(int v);
-
-    int ollamaNumThread() const { return m_ollamaNumThread; }
-    void setOllamaNumThread(int v);
-
-    int ollamaNumPredict() const { return m_ollamaNumPredict; }
-    void setOllamaNumPredict(int v);
-
-    QString ollamaKeepAlive() const { return m_ollamaKeepAlive; }
-    void setOllamaKeepAlive(const QString &v);
-
-    QString systemPrompt() const { return m_systemPrompt; }
-    void setSystemPrompt(const QString &v);
-
-    bool knowledgeBaseEnabled() const { return m_knowledgeBaseEnabled; }
-    void setKnowledgeBaseEnabled(bool v);
-
-    int knowledgeBaseMaxSnippets() const { return m_knowledgeBaseMaxSnippets; }
-    void setKnowledgeBaseMaxSnippets(int v);
-
-    QString panelIconStyle() const { return m_panelIconStyle; }
-    void setPanelIconStyle(const QString &v);
-
-    bool pin() const { return m_pin; }
-    void setPin(bool v);
-
-    QString defaultEmailClient() const { return m_defaultEmailClient; }
-    void setDefaultEmailClient(const QString &v);
-
-    QString defaultCalendarClient() const { return m_defaultCalendarClient; }
-    void setDefaultCalendarClient(const QString &v);
-
-    QString voiceAccent() const { return m_voiceAccent; }
-    void setVoiceAccent(const QString &v);
-    int voiceIndex() const { return m_voiceIndex; }
-    void setVoiceIndex(int v);
-    double voicePace() const { return m_voicePace; }
-    void setVoicePace(double v);
-    double voiceExpressivity() const { return m_voiceExpressivity; }
-    void setVoiceExpressivity(double v);
-    QString siriMode() const { return m_siriMode; }
-    void setSiriMode(const QString &v);
-    QString historyRetention() const { return m_historyRetention; }
-    void setHistoryRetention(const QString &v);
-    QString openToMode() const { return m_openToMode; }
-    void setOpenToMode(const QString &v);
-    int previewLines() const { return m_previewLines; }
-    void setPreviewLines(int v);
-    bool alwaysShowRequest() const { return m_alwaysShowRequest; }
-    void setAlwaysShowRequest(bool v);
-    bool autoVisualLookup() const { return m_autoVisualLookup; }
-    void setAutoVisualLookup(bool v);
-    bool confirmCloudRequests() const { return m_confirmCloudRequests; }
-    void setConfirmCloudRequests(bool v);
+    QString voiceAccent() const { return m_cfg.voiceAccent; }
+    int voiceIndex() const { return m_cfg.voiceIndex; }
+    double voicePace() const { return m_cfg.voicePace; }
+    double voiceExpressivity() const { return m_cfg.voiceExpressivity; }
+    QString siriMode() const { return m_cfg.siriMode; }
+    QString historyRetention() const { return m_cfg.historyRetention; }
+    QString openToMode() const { return m_cfg.openToMode; }
+    int previewLines() const { return m_cfg.previewLines; }
+    bool alwaysShowRequest() const { return m_cfg.alwaysShowRequest; }
+    bool autoVisualLookup() const { return m_cfg.autoVisualLookup; }
+    bool confirmCloudRequests() const { return m_cfg.confirmCloudRequests; }
     bool suggestionsEnabled() const { return m_suggestionsEnabled; }
-    void setSuggestionsEnabled(bool v);
-    QStringList excludedApps() const { return m_excludedApps; }
-    void setExcludedApps(const QStringList &v);
+    QStringList excludedApps() const { return m_cfg.excludedApps; }
 
-    QStringList detectedModels() const { return m_detectedModels; }
-    bool ollamaChecking() const { return m_ollamaChecking; }
-    bool ollamaReachable() const { return m_ollamaReachable; }
+    QStringList detectedModels() const;
+    bool ollamaChecking() const;
+    bool ollamaReachable() const;
     bool whisperFound() const;
     bool piperFound() const;
 
+    // Setters
+    void setSttEngine(const QString &v);
+    void setWakeWordEnabled(bool v);
+    void setContinuousConversation(bool v);
+    void setSpeechOutputMode(const QString &v);
+    void setEarconsEnabled(bool v);
+    void setVadEnabled(bool v);
+    void setVadSilenceTimeoutMs(int v);
+    void setAutoListenOnActivate(bool v);
+    void setUseCentralizedVoice(bool v);
+    void setWhisperLanguage(const QString &v);
+    void setWhisperModelPath(const QString &v);
+    void setPiperVoicePath(const QString &v);
+
+    void setTtsEngine(const QString &v);
+    void setGoogleApiKey(const QString &v);
+    void setGoogleVoice(const QString &v);
+    void setEdgeVoice(const QString &v);
+    void setKokoroVoice(const QString &v);
+
+    void setAiBackend(const QString &v);
+    void setGeminiModel(const QString &v);
+    void setGeminiApiKey(const QString &v);
+
+    void setOllamaUrl(const QString &v);
+    void setOllamaModel(const QString &v);
+    void setOllamaVisionModel(const QString &v);
+    void setOllamaTemperature(double v);
+    void setOllamaNumCtx(int v);
+    void setOllamaNumThread(int v);
+    void setOllamaNumPredict(int v);
+    void setOllamaKeepAlive(const QString &v);
+    void setSystemPrompt(const QString &v);
+
+    void setKnowledgeBaseEnabled(bool v);
+    void setKnowledgeBaseMaxSnippets(int v);
+
+    void setPanelIconStyle(const QString &v);
+    void setPin(bool v);
+    void setDefaultEmailClient(const QString &v);
+    void setDefaultCalendarClient(const QString &v);
+
+    void setVoiceAccent(const QString &v);
+    void setVoiceIndex(int v);
+    void setVoicePace(double v);
+    void setVoiceExpressivity(double v);
+    void setSiriMode(const QString &v);
+    void setHistoryRetention(const QString &v);
+    void setOpenToMode(const QString &v);
+    void setPreviewLines(int v);
+    void setAlwaysShowRequest(bool v);
+    void setAutoVisualLookup(bool v);
+    void setConfirmCloudRequests(bool v);
+    void setSuggestionsEnabled(bool v);
+    void setExcludedApps(const QStringList &v);
+
+    // Q_INVOKABLE Actions
     Q_INVOKABLE void fetchModels();
     Q_INVOKABLE void checkReadiness();
     Q_INVOKABLE void openKnowledgeFolder() const;
@@ -289,66 +271,10 @@ Q_SIGNALS:
 
 private:
     void notifyDaemon();
+    void emitAllChanged();
 
-    QNetworkAccessManager *m_nam = nullptr;
-    QPointer<QProcess> m_previewTtsProc;
-    QPointer<QProcess> m_previewPlayProc;
-
-    QString m_sttEngine = QStringLiteral("gemini");
-    bool m_wakeWordEnabled = true;
-    bool m_continuousConversation = false;
-    QString m_speechOutputMode = QStringLiteral("always");
-    bool m_earconsEnabled = true;
-    bool m_vadEnabled = true;
-    int m_vadSilenceTimeoutMs = 1300;
-    bool m_autoListenOnActivate = false;
-    bool m_useCentralizedVoice = true;
-    QString m_whisperLanguage = QStringLiteral("es");
-    QString m_whisperModelPath;
-    QString m_piperVoicePath;
-    QString m_ttsEngine = QStringLiteral("google");
-    QString m_googleApiKey;
-    QString m_googleVoice = QStringLiteral("es-ES-Neural2-F");
-    QString m_edgeVoice = QStringLiteral("es-ES-ElviraNeural");
-    QString m_kokoroVoice = QStringLiteral("ef_dora");
-
-    QString m_aiBackend = QStringLiteral("hybrid");
-    QString m_geminiModel = QStringLiteral("gemini-2.0-flash");
-    QString m_geminiApiKey;
-
-    QString m_ollamaUrl = QStringLiteral("http://127.0.0.1:11434");
-    QString m_ollamaModel = QStringLiteral("llama3.2:3b");
-    QString m_ollamaVisionModel = QStringLiteral("llama3.2:3b");
-    double m_ollamaTemperature = 0.2;
-    int m_ollamaNumCtx = 4096;
-    int m_ollamaNumThread = 6;
-    int m_ollamaNumPredict = 384;
-    QString m_ollamaKeepAlive = QStringLiteral("24h");
-    QString m_systemPrompt;
-
-    bool m_knowledgeBaseEnabled = true;
-    int m_knowledgeBaseMaxSnippets = 3;
-
-    QString m_panelIconStyle = QStringLiteral("symbolic");
-    bool m_pin = false;
-    QString m_defaultEmailClient = QStringLiteral("proton");
-    QString m_defaultCalendarClient = QStringLiteral("proton");
-
-    QString m_voiceAccent = QStringLiteral("Spanish (Spain)");
-    int m_voiceIndex = 3;
-    double m_voicePace = 0.55;
-    double m_voiceExpressivity = 0.65;
-    QString m_siriMode = QStringLiteral("ai");
-    QString m_historyRetention = QStringLiteral("forever");
-    QString m_openToMode = QStringLiteral("past");
-    int m_previewLines = 4;
-    bool m_alwaysShowRequest = true;
-    bool m_autoVisualLookup = true;
-    bool m_confirmCloudRequests = false;
+    KityConfigData m_cfg;
+    OllamaModelScanner *m_ollamaScanner = nullptr;
+    VoicePreviewEngine *m_voicePreviewEngine = nullptr;
     bool m_suggestionsEnabled = true;
-    QStringList m_excludedApps;
-
-    QStringList m_detectedModels;
-    bool m_ollamaChecking = false;
-    bool m_ollamaReachable = false;
 };

@@ -3,6 +3,14 @@
 
 kcmutils_add_qml_kcm(kcm_kity
     SOURCES
+        assetdiagnostics.cpp
+        assetdiagnostics.h
+        kityconfigdata.cpp
+        kityconfigdata.h
+        ollamamodelscanner.cpp
+        ollamamodelscanner.h
+        voicepreviewengine.cpp
+        voicepreviewengine.h
         kcm_kity.cpp
         kcm_kity.h
 )
